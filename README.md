@@ -1,2 +1,2 @@
 # Vision2022-Competition
-Merge Robotics Vision Competition Code for 2022
+Vision code for the 2022 season Rapid Reset
