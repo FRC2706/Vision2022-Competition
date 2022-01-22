@@ -10,29 +10,28 @@ Install Visual Code studio
   - OpenCV - intellisense
 
   Optional:
-    - Java (for robot code)
-    - C/C++ for microsoft
+   - Java (for robot code)
+   - C/C++ for microsoft
 
 Install python (python.org) 
--install with path setting enabled 
--make sure pip is installed, and other default options
+ - install with path setting enabled 
+ - make sure pip is installed, and other default options
 
 
 Open command line (cmd in windows) - This will also verify install
-py -m pip install --upgrade pip
+ - py -m pip install --upgrade pip
 
-//To install number python (more math operatios)
-pip install numpy
+To install number python (more math operatios)
+ - pip install numpy
 
-//To install open CV
-pip instal opencv-python
+To install open CV
+ - pip instal opencv-python
 
-//To get networktables (To talk to our robot)
-pip install robotpy
-
+To get networktables (To talk to our robot)
+ - pip install robotpy
 
 Clone Vision repository
-git clone https://github.com/FRC2706/Vision2022-Competition.git
+ - git clone https://github.com/FRC2706/Vision2022-Competition.git
 
 Open folder to Vision repository in VS Code
 - MergeViewer lets you run the vision code from your labtop
