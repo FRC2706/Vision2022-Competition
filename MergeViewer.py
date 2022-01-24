@@ -36,7 +36,6 @@ from VisionConstants import *
 from VisionUtilities import *
 from VisionMasking import *
 from DistanceFunctions import *
-from ControlPanel import *
 print()
 print("--- Merge Viewer Starting ---")
 print()
@@ -58,7 +57,6 @@ webCamNumber = 1
 Driver = False
 Tape = True
 PowerCell = False
-ControlPanel = False
 
 # counts frames for writing images
 frameStop = 0
@@ -96,6 +94,8 @@ else:  # implies images are to be read
     #images, imagename = load_images_from_folder("./PowerCellFullScale")
     #images, imagename = load_images_from_folder("./PowerCellFullMystery")
     #images, imagename = load_images_from_folder("./PowerCellFullRobot")
+    #images, imagename = load_images_from_folder("./VisionCargoImages")
+
 
     # Outer Target Images
     images, imagename = load_images_from_folder("./HubImgFRC")
@@ -180,10 +180,6 @@ while stayInLoop or cap.isOpened():
                 boxBlur = blurImg(frame, yellow_blur)
                 threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
                 processed = findPowerCell(frame, threshold, MergeVisionPipeLineTableName)
-            elif ControlPanel:
-                boxBlur = blurImg(frame, yellow_blur)
-                threshold = threshold_video(lower_yellow, upper_yellow, frame)
-                processed = findControlPanel(frame, threshold)
 
     # end of cycle so update counter
     #fps.update()

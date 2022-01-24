@@ -106,8 +106,8 @@ def findTargets(frame, mask, CornerMethod, MergeVisionPipeLineTableName):
             _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
         elif CornerMethod is 6 or CornerMethod is 7:
             _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-        elif CornerMethod is 8 or CornerMethod is 9 or CornerMethod is 10:
-            _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #elif CornerMethod is 8 or CornerMethod is 9 or CornerMethod is 10:
+        #    _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         else:
             pass
     else: #implies not cv3, either version 2 or 4
@@ -117,8 +117,8 @@ def findTargets(frame, mask, CornerMethod, MergeVisionPipeLineTableName):
             contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
         elif CornerMethod is 6 or CornerMethod is 7:
             contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-        elif CornerMethod is 8 or CornerMethod is 9 or CornerMethod is 10:
-            contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #elif CornerMethod is 8 or CornerMethod is 9 or CornerMethod is 10:
+        #    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         else:
             pass
 

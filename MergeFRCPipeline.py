@@ -32,7 +32,6 @@ from VisionConstants import *
 from VisionUtilities import *
 from VisionMasking import *
 from DistanceFunctions import *
-from ControlPanel import *
 
 print("Using python version {0}".format(sys.version))
 print()
@@ -207,16 +206,11 @@ OutputStream = data["OutputStream"]
 ExposureTape = data["ExposureTarget"]
 ExposureBall = data["ExposureBall"]
 
-#print("ExposureT: "+ str(ExposureTape))
-#print("ExposureB: " + str(ExposureBall))
-
 if TapeEnabled:
     switch = 2
 
 if PowerCellEnabled:
     switch = 3
-
-#MergeVisionPublishingTable = "MergeVision"
 
 class CameraConfig: pass
 
@@ -337,7 +331,6 @@ if __name__ == "__main__":
     # start NetworkTables
     ntinst = NetworkTablesInstance.getDefault()
     # Name of network table - this is how it communicates with robot. IMPORTANT
-    #networkTable = NetworkTables.getTable(MergeVisionPublishingTable)
     networkTableMatch = NetworkTables.getTable("FMSInfo")
     networkTableTime = NetworkTables.getTable("SmartDashboard")
     networkTableMatchVariables = NetworkTables.getTable("VisionControl")
@@ -510,18 +503,6 @@ if __name__ == "__main__":
                     processed = threshold
                 else:   
                     processed = findPowerCell(frame, threshold, MergeVisionPipeLineTableName)
-
-            # elif (networkTableVisionPipeline.getBoolean("ControlPanel", True)):
-            #     # Checks if you just want camera for Control Panel, by dent of everything else being false, true by default
-            #     switch = 4
-            #     #cap.autoExpose = True
-            #     boxBlur = blurImg(frame, yellow_blur)
-            #     # Need to create proper mask for control panel
-            #     threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
-            #     if (networkTableVisionPipeline.getBoolean("SendMask", False)):
-            #         processed = threshold
-            #     else:    
-            #         processed = findControlPanel(frame, threshold)
 
         # Puts timestamp of camera on network tables
         networkTableVisionPipeline.putNumber("VideoTimestamp", timestamp)

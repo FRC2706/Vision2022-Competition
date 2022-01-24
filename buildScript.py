@@ -9,7 +9,6 @@ FILENAME4 = "visionPracticePi21.zip"
 zipObj = zipfile.ZipFile(FILENAME, 'w')
 
 # Add module files to the zip
-zipObj.write('ControlPanel.py')
 zipObj.write('DistanceFunctions.py')
 zipObj.write('FindBall.py')
 zipObj.write('FindTarget.py')
@@ -24,7 +23,6 @@ zipObj.write('pipelineConfigPi20.json', 'pipelineConfig.json')
 
 zipObj2 = zipfile.ZipFile(FILENAME2, 'w')
 
-zipObj2.write('ControlPanel.py')
 zipObj2.write('DistanceFunctions.py')
 zipObj2.write('FindBall.py')
 zipObj2.write('FindTarget.py')
@@ -38,7 +36,6 @@ zipObj2.write('pipelineConfigPi21.json', 'pipelineConfig.json')
 
 zipObj3 = zipfile.ZipFile(FILENAME3, 'w')
 
-zipObj3.write('ControlPanel.py')
 zipObj3.write('DistanceFunctions.py')
 zipObj3.write('FindBall.py')
 zipObj3.write('FindTarget.py')
@@ -52,7 +49,6 @@ zipObj3.write('pipelineConfigPractPi20.json', 'pipelineConfig.json')
 
 zipObj4 = zipfile.ZipFile(FILENAME4, 'w')
 
-zipObj4.write('ControlPanel.py')
 zipObj4.write('DistanceFunctions.py')
 zipObj4.write('FindBall.py')
 zipObj4.write('FindTarget.py')
