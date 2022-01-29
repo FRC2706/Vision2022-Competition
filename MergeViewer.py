@@ -55,8 +55,10 @@ webCamNumber = 1
 
 # ADJUST DESIRED TARGET BASED ON VIDEO OR FILES ABOVE !!!
 Driver = False
-Tape = True
-PowerCell = False
+Tape = False 
+PowerCell = True
+Red = True 
+Blue = False
 
 # counts frames for writing images
 frameStop = 0
@@ -94,11 +96,11 @@ else:  # implies images are to be read
     #images, imagename = load_images_from_folder("./PowerCellFullScale")
     #images, imagename = load_images_from_folder("./PowerCellFullMystery")
     #images, imagename = load_images_from_folder("./PowerCellFullRobot")
-    #images, imagename = load_images_from_folder("./VisionCargoImages")
+    images, imagename = load_images_from_folder("./VisionCargoImages")
 
 
     # Outer Target Images
-    images, imagename = load_images_from_folder("./HubImgFRC")
+    #images, imagename = load_images_from_folder("./HubImgFRC")
 
 
     # finds height/width of camera frame (eg. 640 width, 480 height)
@@ -177,10 +179,14 @@ while stayInLoop or cap.isOpened():
             processed = findTargets(frame, threshold, Method, MergeVisionPipeLineTableName)
         else:
             if PowerCell:
-                boxBlur = blurImg(frame, yellow_blur)
-                threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
-                processed = findPowerCell(frame, threshold, MergeVisionPipeLineTableName)
-
+                if Red:
+                    boxBlur = blurImg(frame, red_blur)
+                    threshold = threshold_video(lower_red, upper_red, boxBlur)
+                    processed = findPowerCell(frame, threshold, MergeVisionPipeLineTableName)
+                elif Blue:
+                    boxBlur = blurImg(frame, blue_blur)
+                    threshold = threshold_video(lower_blue, upper_blue, boxBlur)
+                    processed = findPowerCell(frame, threshold, MergeVisionPipeLineTableName)
     # end of cycle so update counter
     #fps.update()
     # in merge view also end of time we want to measure so stop FPS
@@ -242,6 +248,13 @@ while stayInLoop or cap.isOpened():
             currentImg = currentImg + 1
             if currentImg > imgLength - 1:
                 currentImg = 0
+        if key == 32 :
+            if Red == True:
+                Blue = True
+                Red = False
+            elif Blue == True :
+                Red = True
+                Blue = False
 
         #destroy old window
         cv2.destroyWindow(filename)

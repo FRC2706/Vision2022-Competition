@@ -265,7 +265,7 @@ if __name__ == "__main__":
 
     # using inrange from opencv make mask
     mskBinary = cv2.inRange(hsvTestImage, (29,254,254), (31,255,255)) # (30, 255, 255)
-
+    
     # display the mask to verify it visually
     cv2.imshow('This is the mask', mskBinary)
 

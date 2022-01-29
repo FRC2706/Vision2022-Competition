@@ -183,18 +183,30 @@ verticalView = math.atan(math.tan(diagonalView / 2) * (verticalAspect / diagonal
 # Focal Length calculations: https://docs.google.com/presentation/d/1ediRsI-oR3-kwawFJZ34_ZTlQS2SDBLjZasjzZ-eXbQ/pub?start=false&loop=false&slide=id.g12c083cffa_0_165
 H_FOCAL_LENGTH = image_width / (2 * math.tan((horizontalView / 2)))
 V_FOCAL_LENGTH = image_height / (2 * math.tan((verticalView / 2)))
+
 # blurs have to be odd
 green_blur = 1
 orange_blur = 27
 yellow_blur = 27
+red_blur = 27
+blue_blur = 27
 
 # define range of green of retroreflective tape in HSV
-lower_green = np.array([40, 75, 75])
-upper_green = np.array([96, 255, 255])
-# define range of orange from cargo ball in HSV
-lower_orange = np.array([0, 193, 92])
-upper_orange = np.array([23, 255, 255])
+# lower_green = np.array([40, 75, 75])
+# upper_green = np.array([96, 255, 255])
 
+# define range of orange from cargo ball in HSV
+# lower_orange = np.array([0, 193, 92])
+# upper_orange = np.array([23, 255, 255])
+
+# masks for red and blue cargo (HSV)
+# lower_red = np.array([163,140,0])
+# upper_red = np.array([180,255,255])
+
+# lower_blue = np.array([104,66,0]) 
+# upper_blue = np.array([137,255,255]) 
+
+# masks for yellow cargo from 2019 game, might just remove later
 lower_yellow = np.array([36, 50, 80])
 upper_yellow = np.array([55, 120, 120])
 
@@ -209,7 +221,6 @@ configFile = "/boot/frc.json"
 
 
 class CameraConfig: pass
-
 
 team = 2706
 server = False

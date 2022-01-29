@@ -43,6 +43,8 @@ KNOWN_BALL_DISTANCE = 6
 green_blur = 1
 orange_blur = 27
 yellow_blur = 1
+red_blur = 1
+blue_blur = 1
 
 # define colors
 purple = (165, 0, 120)
@@ -64,5 +66,12 @@ upper_green = np.array([100, 255, 255])
 
 lower_yellow = np.array([10, 150, 65]) # was 14, 150, 150
 upper_yellow = np.array([30, 255, 255])
+
+# masks for red and blue cargo (HSV)
+lower_red = np.array([163,140,0])
+upper_red = np.array([180,255,255])
+
+lower_blue = np.array([104,66,0]) 
+upper_blue = np.array([137,255,255]) 
 
 blingColour = 0
