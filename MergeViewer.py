@@ -51,13 +51,13 @@ print()
 # boolean for video input, if true does video, if false images
 useVideo = False
 # integer for usb camera to use, boolean for live webcam
-useWebCam = False
+useWebCam = True
 webCamNumber = 1
 
 # ADJUST DESIRED TARGET BASED ON VIDEO OR FILES ABOVE !!!
 Driver = False
-Tape = True
-PowerCell = False
+Tape = False
+PowerCell = True
 ControlPanel = False
 
 # counts frames for writing images
@@ -93,13 +93,13 @@ elif useWebCam: #test against live camera
 
 else:  # implies images are to be read
     # Power Cell Images
-    #images, imagename = load_images_from_folder("./PowerCellFullScale")
+    images, imagename = load_images_from_folder("./PowerCellFullScale")
     #images, imagename = load_images_from_folder("./PowerCellFullMystery")
     #images, imagename = load_images_from_folder("./PowerCellFullRobot")
 
     # Outer Target Images
     #images, imagename = load_images_from_folder("./OuterTargetFullDistance")
-    images, imagename = load_images_from_folder("./OuterTargetImages")
+    #images, imagename = load_images_from_folder("./OuterTargetImages")
     #images, imagename = load_images_from_folder("./OuterTargetRingTest")
     #images, imagename = load_images_from_folder("./OuterTargetLiger")
 
