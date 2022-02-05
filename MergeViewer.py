@@ -55,8 +55,8 @@ webCamNumber = 1
 
 # ADJUST DESIRED TARGET BASED ON VIDEO OR FILES ABOVE !!!
 Driver = False
-Tape = False 
-PowerCell = True
+Tape = True 
+PowerCell = False
 Red = True 
 Blue = False
 
@@ -96,11 +96,13 @@ else:  # implies images are to be read
     #images, imagename = load_images_from_folder("./PowerCellFullScale")
     #images, imagename = load_images_from_folder("./PowerCellFullMystery")
     #images, imagename = load_images_from_folder("./PowerCellFullRobot")
-    images, imagename = load_images_from_folder("./VisionCargoImages")
-
+    #images, imagename = load_images_from_folder("./VisionCargoImages")
+    #images, imagename = load_images_from_folder("./VisionCargoImagesActual")
+   
 
     # Outer Target Images
-    #images, imagename = load_images_from_folder("./HubImgFRC")
+    images, imagename = load_images_from_folder("./HubImgFRC")
+    #images, imagename = load_images_from_folder("./HubImgSketchup")
 
 
     # finds height/width of camera frame (eg. 640 width, 480 height)
@@ -123,7 +125,7 @@ cameraConfigs = []
 # Method 9 is a five point visual method using SolvePNP (Brian and Erik)
 # Method 10 is a four point SolvePNP blending M7 and M8 (everybody!)
 
-Method = 7
+Method = 3
 
 if useVideo and not useWebCam:
     cap = cv2.VideoCapture(videoname)

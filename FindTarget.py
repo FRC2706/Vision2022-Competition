@@ -457,8 +457,43 @@ def findTape(contours, image, centerX, centerY, mask, CornerMethod, MergeVisionP
                 cntArea = cv2.contourArea(cnt)
 
                 # rotated rectangle fingerprinting
+               # bounding = cv2.boundingRect(cnt)
                 rect = cv2.minAreaRect(cnt)
+
+               #rect = cv2.boundingRect(cnt)
                 (xr,yr),(wr,hr),ar = rect #x,y width, height, angle of rotation = rotated rect
+
+               # print("Area: " + ar)
+
+                x, y, w, h = cv2.boundingRect(cnt)
+                #cv2.rectangle(image,(x,y),(x+w,y+h),(0, 255, 255),1)
+                # cv2.imshow("result",image)
+
+                percentfill = (cntArea/(w*h))
+
+                print("cntArea: " , cntArea)
+                print("percent fill: ",(cntArea/(w*h)) )
+
+                #Filter based on too larger contour 
+                if (cntArea > 1000): continue
+ 
+                #Filter based on too small contour
+                if (cntArea < 100): continue
+
+                # Filter based on percent fill
+                if (percentfill < 0.52): continue 
+
+                # Filter based on Angle of rotation 
+
+                print("AR:" , ar)
+                print("X: " , x)
+                print("Y: " , y)
+                print("W: " , w)
+                print("H: " , h)
+               
+                
+
+                
 
                 #to get rid of height and width switching
                 if hr > wr: 
@@ -470,172 +505,229 @@ def findTape(contours, image, centerX, centerY, mask, CornerMethod, MergeVisionP
                     ar = 0
 
                 if hr == 0: continue
-                cntAspectRatio = float(wr)/hr
-                minAextent = float(cntArea)/(wr*hr)
+                cntMinAreaAR = float(wr)/hr
+                cntBoundRectAR = float(w)/h
+
+                print ("cntBoundRectAR: " , cntBoundRectAR)
+                print ("cntMinAreaAR: " , cntMinAreaAR)
+
+                # Filter based on aspect ratio (previous values: 2-3)
+                #Tape is 13 cm wide by 5 cm high - that gives aspect ration of 2.6
+                #To be flexible, lets accept (1.9 - 3.3) range 
+                if (cntBoundRectAR < 1.9 or cntBoundRectAR > 3.3): continue 
+
+                cv2.rectangle(image,(x,y),(x+w,y+h),(0, 0, 255),1) 
+                
+                #minAextent = float(cntArea)/(wr*hr)
 
                 # Hull
-                hull = cv2.convexHull(cnt)
-                hull_area = cv2.contourArea(hull)
-                solidity = float(cntArea)/hull_area
+                #hull = cv2.convexHull(cnt)
+                #hull_area = cv2.contourArea(hull)
+                #solidity = float(cntArea)/hull_area
 
-                # Filter based on area
-                if (cntArea < minContourArea): continue 
+               
                 # Filter based on minimum area extent (previous values: 0.16-0.26)
-                if (minAextent < 0.139 or minAextent > 1.1): continue
-                # Filter based on aspect ratio (previous values: 2-3)
-                if (cntAspectRatio < 1.7 or cntAspectRatio > 3.3): continue
+                #if (minAextent < 0.139 or minAextent > 1.1): continue
+               
                 # Filter based on solidity (previous values: 0.22-0.35)
-                if (solidity < 0.19 or solidity > 0.35): continue
+                #if (solidity < 0.19 or solidity > 0.35): continue
 
-                cntsFiltered.append(cnt)
+                cntsFiltered.append([cnt, cntArea])
                 #end fingerprinting
 
             # We will work on the filtered contour with the largest area which is the
             # first one in the list
             if (len(cntsFiltered) > 0):
 
-                cnt = cntsFiltered[0]
+                
+                cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), white, 2)
 
-                rw_coordinates = real_world_coordinates
+                #Found candidate contours
+                #now find the following:
+                #1. center of all candiates
+                #2. average of the area 
 
-                #Pick which Corner solving method to use
-                foundCorners = False
+                #loop through candiates
+                final_center = 0
+                average_area = 0
 
-                if CornerMethod is 4:
-                    rw_coordinates = real_world_coordinates
-                    outer_corners, rw_coordinates = get_four_points_with3(cnt)
-                    foundCorners = True
+                for i in range(len(cntsFiltered)):
 
-                elif CornerMethod is 6:
-                    rw_coordinates = real_world_coordinates
-                    foundCorners, outer_corners = get_four_points(cnt)
+                    cnt = cntsFiltered[i][0]
+                    cntArea = cntsFiltered[i][1]
 
-                elif CornerMethod is 7:
-                    rw_coordinates = real_world_coordinates
-                    foundCorners, outer_corners = get_four_points2(cnt,image)
-
-                elif CornerMethod is 8:
-                    rw_coordinates = real_world_coordinates_inner
-                    xb, yb, wb, hb = cv2.boundingRect(cnt)
-                    bounding_rect = (xb,yb,wb,hb)
-                    ROI_mask = mask[yb:yb+hb, xb:xb+wb]
-                    intROMHeight, intROMWidth = ROI_mask.shape[:2]
-                    if is_cv3():
-                        imgFindContourReturn, ROIcontours, hierarchy = cv2.findContours(ROI_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                    else:
-                        ROIcontours, hierarchy = cv2.findContours(ROI_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                    ROISortedContours = sorted(ROIcontours, key = cv2.contourArea, reverse = True)[:1]
-                    foundCorners, inner_corners = get_four(bounding_rect, intROMWidth, intROMHeight, ROISortedContours[0])
-                    if foundCorners == True:
-                        only_four = ((inner_corners[0]),(inner_corners[1]),(inner_corners[3]),(inner_corners[4]))
-                        outer_corners = np.array(only_four)
-                    else:
-                        pass
-
-                elif CornerMethod is 9:
-                    rw_coordinates = real_world_coordinates_inner_five
-                    xb, yb, wb, hb = cv2.boundingRect(cnt)
-                    bounding_rect = (xb,yb,wb,hb)
-                    ROI_mask = mask[yb:yb+hb, xb:xb+wb]
-                    intROMHeight, intROMWidth = ROI_mask.shape[:2]
-                    if is_cv3():
-                        imgFindContourReturn, ROIcontours, hierarchy = cv2.findContours(ROI_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                    else:
-                        ROIcontours, hierarchy = cv2.findContours(ROI_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                    ROISortedContours = sorted(ROIcontours, key = cv2.contourArea, reverse = True)[:1]
-                    foundCorners, inner_bottom = get_four(bounding_rect, intROMWidth, intROMHeight, ROISortedContours[0])
-                    if foundCorners == True:
-                        outer_corners = np.array(inner_bottom)
-                    else:
-                        pass
-                else:
-                    pass
-
-                if (foundCorners):
-                    displaycorners(image, outer_corners)
-                    success, rvec, tvec = findTvecRvec(image, outer_corners, rw_coordinates) 
-
-                    #Calculate the Yaw
+                    #Calculate the Center of each Contour
                     M = cv2.moments(cnt)
                     if M["m00"] != 0:
                         cx = int(M["m10"] / M["m00"])
-                        cy = int(M["m01"] / M["m00"])
+                        #cy = int(M["m01"] / M["m00"])
                     else:
-                        cx, cy = 0, 0
+                        cx = 0
+                    
+                    final_center += cx
 
-                    YawToTarget = calculateYaw(cx, centerX, H_FOCAL_LENGTH)
+                    #find average Area
+                    average_area += cntArea
+                
+                final_center = round(final_center / len(cntsFiltered))
+                average_area = average_area / len(cntsFiltered)
+
+                print("Final_Center: ", final_center)
+
+                #cv2.line(image, (final_center, screenHeight), (final_center, 0), green, 2)
+               
+
+                YawToTarget = calculateYaw(final_center, centerX, H_FOCAL_LENGTH)
+
+
+                    
+
+
+
+            #  cnt = cntsFiltered[0]
+
+                # rw_coordinates = real_world_coordinates
+
+                # #Pick which Corner solving method to use
+                # foundCorners = False
+
+                # if CornerMethod is 4:
+                #     rw_coordinates = real_world_coordinates
+                #     outer_corners, rw_coordinates = get_four_points_with3(cnt)
+                #     foundCorners = True
+
+                # elif CornerMethod is 6:
+                #     rw_coordinates = real_world_coordinates
+                #     foundCorners, outer_corners = get_four_points(cnt)
+
+                # elif CornerMethod is 7:
+                #     rw_coordinates = real_world_coordinates
+                #     foundCorners, outer_corners = get_four_points2(cnt,image)
+
+                # elif CornerMethod is 8:
+                #     rw_coordinates = real_world_coordinates_inner
+                #     xb, yb, wb, hb = cv2.boundingRect(cnt)
+                #     bounding_rect = (xb,yb,wb,hb)
+                #     ROI_mask = mask[yb:yb+hb, xb:xb+wb]
+                #     intROMHeight, intROMWidth = ROI_mask.shape[:2]
+                #     if is_cv3():
+                #         imgFindContourReturn, ROIcontours, hierarchy = cv2.findContours(ROI_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                #     else:
+                #         ROIcontours, hierarchy = cv2.findContours(ROI_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                #     ROISortedContours = sorted(ROIcontours, key = cv2.contourArea, reverse = True)[:1]
+                #     foundCorners, inner_corners = get_four(bounding_rect, intROMWidth, intROMHeight, ROISortedContours[0])
+                #     if foundCorners == True:
+                #         only_four = ((inner_corners[0]),(inner_corners[1]),(inner_corners[3]),(inner_corners[4]))
+                #         outer_corners = np.array(only_four)
+                #     else:
+                #         pass
+
+                # elif CornerMethod is 9:
+                #     rw_coordinates = real_world_coordinates_inner_five
+                #     xb, yb, wb, hb = cv2.boundingRect(cnt)
+                #     bounding_rect = (xb,yb,wb,hb)
+                #     ROI_mask = mask[yb:yb+hb, xb:xb+wb]
+                #     intROMHeight, intROMWidth = ROI_mask.shape[:2]
+                #     if is_cv3():
+                #         imgFindContourReturn, ROIcontours, hierarchy = cv2.findContours(ROI_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                #     else:
+                #         ROIcontours, hierarchy = cv2.findContours(ROI_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                #     ROISortedContours = sorted(ROIcontours, key = cv2.contourArea, reverse = True)[:1]
+                #     foundCorners, inner_bottom = get_four(bounding_rect, intROMWidth, intROMHeight, ROISortedContours[0])
+                #     if foundCorners == True:
+                #         outer_corners = np.array(inner_bottom)
+                #     else:
+                #         pass
+                # else:
+                #     pass
+
+                # if (foundCorners):
+                #     displaycorners(image, outer_corners)
+                #     success, rvec, tvec = findTvecRvec(image, outer_corners, rw_coordinates) 
+
+                #     #Calculate the Yaw
+                #     M = cv2.moments(cnt)
+                #     if M["m00"] != 0:
+                #         cx = int(M["m10"] / M["m00"])
+                #         cy = int(M["m01"] / M["m00"])
+                #     else:
+                #         cx, cy = 0, 0
+
+                #     YawToTarget = calculateYaw(cx, centerX, H_FOCAL_LENGTH) 
                     
                     # If success then print values to screen                               
-                    if success:
-                        distance, angle1, angle2 = compute_output_values(rvec, tvec)
+                    #if success:
+                     #   distance, angle1, angle2 = compute_output_values(rvec, tvec)
                         #calculate RobotYawToTarget based on Robot offset (subtract 180 degrees)
-                        RobotYawToTarget = 180-abs(angle2)
-                        cv2.putText(image, "TargetYaw: " + str(YawToTarget), (20, 400), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
-                        cv2.putText(image, "Distance: " + str(round((distance/12),2)), (20, 460), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
-                        #cv2.putText(image, "RobotYawToTarget: " + str(round(RobotYawToTarget,2)), (40, 420), cv2.FONT_HERSHEY_COMPLEX, .6,white)
-                        #cv2.putText(image, "SolvePnPTargetYawToCenter: " + str(round(angle1,2)), (40, 460), cv2.FONT_HERSHEY_COMPLEX, .6,white)
-                        
-                        #start with a non-existing colour
-                        
-                        # color 0 is red
-                        # color 1 is yellow
-                        # color 2 is green
-                        if (YawToTarget >= -2 and YawToTarget <= 2):
-                            colour = green
-                            #Use Bling
-                            #Set Green colour
-                            if (blingColour != 2):
-                                publishNumber("blingTable", "green",255)
-                                publishNumber("blingTable", "blue", 0)
-                                publishNumber("blingTable", "red", 0)
-                                publishNumber("blingTable", "wait_ms",0)
-                                publishString("blingTable","command","solid")
-                                blingColour = 2
-                        if ((YawToTarget >= -5 and YawToTarget < -2) or (YawToTarget > 2 and YawToTarget <= 5)):  
-                            colour = yellow
-                            
-                            if (blingColour != 1):
-                                publishNumber("blingTable", "red",255)
-                                publishNumber("blingTable", "green",255)
-                                publishNumber("blingTable", "blue",0)
-                                publishNumber("blingTable", "wait_ms",0)
-                                publishString("blingTable","command","solid")
-                                blingColour = 1
-                        if ((YawToTarget < -5 or YawToTarget > 5)):  
-                            colour = red
-                            if (blingColour != 0):
-                                publishNumber("blingTable", "red",255)
-                                publishNumber("blingTable", "blue",0)
-                                publishNumber("blingTable", "green",0)
-                                publishNumber("blingTable", "wait_ms",0)
-                                publishString("blingTable","command","solid")
-                                blingColour = 0
+                      #  RobotYawToTarget = 180-abs(angle2)
+                cv2.putText(image, "TargetYaw: " + str(YawToTarget), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+            # cv2.putText(image, "Distance: " + str(round((distance/12),2)), (20, 460), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+                #cv2.putText(image, "RobotYawToTarget: " + str(round(RobotYawToTarget,2)), (40, 420), cv2.FONT_HERSHEY_COMPLEX, .6,white)
+                #cv2.putText(image, "SolvePnPTargetYawToCenter: " + str(round(angle1,2)), (40, 460), cv2.FONT_HERSHEY_COMPLEX, .6,white)
+                
+                #start with a non-existing colour
+                
+                # color 0 is red
+                # color 1 is yellow
+                # color 2 is green
+                if (YawToTarget >= -2 and YawToTarget <= 2):
+                    colour = green
+                    #Use Bling
+                    #Set Green colour
+                    if (blingColour != 2):
+                        publishNumber("blingTable", "green",255)
+                        publishNumber("blingTable", "blue", 0)
+                        publishNumber("blingTable", "red", 0)
+                        publishNumber("blingTable", "wait_ms",0)
+                        publishString("blingTable","command","solid")
+                        blingColour = 2
+                if ((YawToTarget >= -5 and YawToTarget < -2) or (YawToTarget > 2 and YawToTarget <= 5)):  
+                    colour = yellow
+                    
+                    if (blingColour != 1):
+                        publishNumber("blingTable", "red",255)
+                        publishNumber("blingTable", "green",255)
+                        publishNumber("blingTable", "blue",0)
+                        publishNumber("blingTable", "wait_ms",0)
+                        publishString("blingTable","command","solid")
+                        blingColour = 1
+                if ((YawToTarget < -5 or YawToTarget > 5)):  
+                    colour = red
+                    if (blingColour != 0):
+                        publishNumber("blingTable", "red",255)
+                        publishNumber("blingTable", "blue",0)
+                        publishNumber("blingTable", "green",0)
+                        publishNumber("blingTable", "wait_ms",0)
+                        publishString("blingTable","command","solid")
+                        blingColour = 0
 
-                        cv2.line(image, (cx, screenHeight), (cx, 0), colour, 2)
-                        cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), white, 2)
+                cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), white, 2)
+                cv2.line(image, (final_center, screenHeight), (final_center, 0), colour, 2)
+                
 
-                        #publishResults(name,value)
-                        publishNumber(MergeVisionPipeLineTableName, "YawToTarget", YawToTarget)
-                        publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", round(distance/12,2))
-                        publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", round(RobotYawToTarget,2))
+                #publishResults(name,value)
+                publishNumber(MergeVisionPipeLineTableName, "YawToTarget", YawToTarget)
+                #publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", round(distance/12,2))
+                #publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", round(RobotYawToTarget,2))
                        
             else:
                 #If Nothing is found, publish -99 and -1 to Network table
                 publishNumber(MergeVisionPipeLineTableName, "YawToTarget", -99)
-                publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1)  
-                publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99)
+              #  publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1)  
+              #  publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99)
                 publishString("blingTable","command","clear")
 
 
     else:
         #If Nothing is found, publish -99 and -1 to Network table
         publishNumber(MergeVisionPipeLineTableName, "YawToTarget", -99)
-        publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1) 
-        publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99) 
+        #publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1) 
+        #publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99) 
         publishString("blingTable","command","clear")    
              
     #     # pushes vision target angle to network table
     return image
+
 
 # Checks if the target contours are worthy 
 def checkTargetSize(cntArea, cntAspectRatio):
@@ -660,8 +752,8 @@ def get_four_points2(cnt, image):
         return False, None
     if list(rightmost) in cnt_list:
         rightmost_index = cnt_list.index(list(rightmost))
-    else:
-        print("get_four_points2(): Rightmost point not found in contour, exiting")
+  #  else:
+      #  print("get_four_points2(): Rightmost point not found in contour, exiting")
     
     # In some cases, topmost and rightmost pixel will be the same so that index of
     # rightmost pixel in contour will be zero (instead of near the end of the contour)
@@ -673,14 +765,14 @@ def get_four_points2(cnt, image):
     # For Line 1, get a set of points *after* leftmost extreme point on left part of contour
     num_points_to_collect = max(int(0.1*(rightmost_index-leftmost_index)), 4)
     if num_points_to_collect == 0:
-        print ("get_four_points2(): num_points_to_collect=0 (left vertical line), exiting")
+       # print ("get_four_points2(): num_points_to_collect=0 (left vertical line), exiting")
         return False, None
     line1_points = cnt[leftmost_index:leftmost_index+num_points_to_collect+1]
 
     # For Line 2, get a set of points around the middle of the bottom part of contour
     num_points_to_collect = max(int(0.15*(rightmost_index-leftmost_index)), 4)
     if num_points_to_collect == 0:
-        print ("get_four_points2(): num_points_to_collect=0 (bottom line), exiting")
+       # print ("get_four_points2(): num_points_to_collect=0 (bottom line), exiting")
         return False, None
     approx_center_of_bottom = leftmost_index + int((rightmost_index - leftmost_index)/2)
     z =  int(num_points_to_collect/2)
@@ -689,7 +781,7 @@ def get_four_points2(cnt, image):
     # For Line 3, Get set of points *before* rightmost extreme point on right part of contour
     num_points_to_collect = max(int(0.1*(rightmost_index-leftmost_index)), 4)
     if num_points_to_collect == 0:
-        print ("get_four_points2(): num_points_to_collect=0 (right vertical line), exiting")
+      #  print ("get_four_points2(): num_points_to_collect=0 (right vertical line), exiting")
         return False, None
     line3_points = cnt[(rightmost_index-num_points_to_collect)%len(cnt):rightmost_index+1]
 
@@ -705,40 +797,40 @@ def get_four_points2(cnt, image):
 
     # Line 1: Best fit line for left part of contour
     if len(line1_points) < min_points_for_line_fit:
-        print("get_four_points2(): len(line1_points) < min_points_for_line_fit, exiting")
+       # print("get_four_points2(): len(line1_points) < min_points_for_line_fit, exiting")
         return False, None
     [v11,v21,x01,y01] = cv2.fitLine(line1_points, cv2.DIST_L2,0,0.01,0.01)
     if (v11==0):
-        print("get_four_points2(): Warning v11=0")
+      #  print("get_four_points2(): Warning v11=0")
         v11 = 0.1
     m1 = v21/v11
     b1 = y01 - m1*x01
 
     # Line 2: Best fit line for bottom part of contour
     if len(line2_points) < min_points_for_line_fit:
-        print("get_four_points2(): len(line2_points) < min_points_for_line_fit, exiting")
+      #  print("get_four_points2(): len(line2_points) < min_points_for_line_fit, exiting")
         return False, None
     [v12,v22,x02,y02] = cv2.fitLine(line2_points, cv2.DIST_L2,0,0.01,0.01)
     m2 = v22/v12
     if (v12==0):
-        print("get_four_points2(): Warning v12=0")
+        #print("get_four_points2(): Warning v12=0")
         v12 = 0.1
     b2 = y02 - m2*x02
 
     # Line 3: Best fit line for right part of contour
     if len(line3_points) < min_points_for_line_fit:
-        print("get_four_points2(): len(line3_points) < min_points_for_line_fit, exiting")
+      #  print("get_four_points2(): len(line3_points) < min_points_for_line_fit, exiting")
         return False, None
     [v13,v23,x03,y03] = cv2.fitLine(line3_points, cv2.DIST_L2,0,0.01,0.01)
     m3 = v23/v13
     if (v13==0):
-        print("get_four_points2(): Warning v13=0")
+      #  print("get_four_points2(): Warning v13=0")
         v13 = 0.1
     b3 = y03 - m3*x03
 
     # Intersection point for left bottom corner point is intersection of Lines 1 and 2
     if (m1 == m2):
-        print("get_four_points2(): slope of Lines 1 and 2 equal, exiting") 
+      #  print("get_four_points2(): slope of Lines 1 and 2 equal, exiting") 
         return False, None
     xint_left = (b2-b1)/(m1-m2)
     yint_left = m1*xint_left+b1
@@ -746,7 +838,7 @@ def get_four_points2(cnt, image):
 
     # Intersection point for right bottom corner point is intersection of Lines 2 and 3
     if (m2 == m3):
-        print("get_four_points2(): slope of Lines 2 and 3 equal, exiting") 
+       # print("get_four_points2(): slope of Lines 2 and 3 equal, exiting") 
         return False, None
     xint_right = (b3-b2)/(m2-m3)
     yint_right = m2*xint_right+b2
