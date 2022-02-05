@@ -52,7 +52,7 @@ print()
 useVideo = False
 # integer for usb camera to use, boolean for live webcam
 useWebCam = True
-webCamNumber = 2
+webCamNumber = 1
 
 # ADJUST DESIRED TARGET BASED ON VIDEO OR FILES ABOVE !!!
 Driver = False
