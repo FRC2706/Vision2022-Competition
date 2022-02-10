@@ -16,17 +16,17 @@ except ImportError:
 
 # real world dimensions of the goal target
 # These are the full dimensions around both strips
-TARGET_STRIP_LENGTH = 19.625    # inches
+TARGET_STRIP_LENGTH = 5.0    # inches
 TARGET_STRIP_WIDTH = 2.0        # inches
-TARGET_HEIGHT = 17.0            # inches
-TARGET_TOP_WIDTH = 39.25        # inches
-TARGET_BOTTOM_WIDTH = TARGET_TOP_WIDTH - 2*TARGET_STRIP_LENGTH*math.cos(math.radians(60))
+#TARGET_HEIGHT = 17.0            # inches
+#TARGET_TOP_WIDTH = 39.25        # inches
+#TARGET_BOTTOM_WIDTH = TARGET_TOP_WIDTH - 2*TARGET_STRIP_LENGTH*math.cos(math.radians(60))
 
 #This is the X position difference between the upper target length and corner point
-TARGET_BOTTOM_CORNER_WIDTH = math.sqrt(math.pow(TARGET_STRIP_LENGTH,2) - math.pow(TARGET_HEIGHT,2))
+# TARGET_BOTTOM_CORNER_WIDTH = math.sqrt(math.pow(TARGET_STRIP_LENGTH,2) - math.pow(TARGET_HEIGHT,2))
 
 # This is the bottom width between corners
-TARGET_INNER_BOTTOM_WIDTH =  TARGET_BOTTOM_WIDTH - 2.0*TARGET_STRIP_WIDTH*math.cos(math.radians(60))
+# TARGET_INNER_BOTTOM_WIDTH =  TARGET_BOTTOM_WIDTH - 2.0*TARGET_STRIP_WIDTH*math.cos(math.radians(60))
 
 # real_world_coordinates = np.array([
 #     [-TARGET_TOP_WIDTH / 2, TARGET_HEIGHT / 2, 0.0],
@@ -36,10 +36,10 @@ TARGET_INNER_BOTTOM_WIDTH =  TARGET_BOTTOM_WIDTH - 2.0*TARGET_STRIP_WIDTH*math.c
 # ])
 
 real_world_coordinates = np.array([
-    [-TARGET_TOP_WIDTH / 2.0, 0.0, 0.0],
-    [TARGET_TOP_WIDTH / 2.0, 0.0, 0.0],
-    [-TARGET_BOTTOM_WIDTH / 2.0, TARGET_HEIGHT, 0.0],
-    [TARGET_BOTTOM_WIDTH / 2.0, TARGET_HEIGHT, 0.0],
+    [-TARGET_STRIP_LENGTH / 2.0, TARGET_STRIP_WIDTH / 2.0, 0.0], # for top left corner
+    [TARGET_STRIP_LENGTH / 2.0, TARGET_STRIP_WIDTH / 2.0, 0.0], # for top right
+    [TARGET_STRIP_LENGTH / 2.0, -TARGET_STRIP_WIDTH / 2.0, 0.0], # for bottom right
+    [-TARGET_STRIP_LENGTH / 2.0, -TARGET_STRIP_WIDTH / 2.0, 0.0], # for bottom left
 ])
 
 #top_left, top_right, bottom_left, bottom_right
@@ -50,7 +50,7 @@ real_world_coordinates = np.array([
 #     [TARGET_TOP_WIDTH-TARGET_BOTTOM_CORNER_WIDTH, TARGET_HEIGHT, 0.0]          # Bottom Right point
 # ])
 
-real_world_coordinates_left = np.array([
+""" real_world_coordinates_left = np.array([
         [0.0, 0.0, 0.0],             # Top Left point
         [0.0, 0.0, 0.0],             # Top Left point
         [TARGET_TOP_WIDTH, 0.0, 0.0],           # Top Right Point
@@ -78,7 +78,7 @@ real_world_coordinates_inner_five = np.array([
     [0.0, TARGET_HEIGHT-2.0, 0.0],
     [TARGET_INNER_BOTTOM_WIDTH / 2.0, TARGET_HEIGHT-2.0, 0.0],
     [TARGET_TOP_WIDTH / 2.0, 0.0, 0.0],
-])
+]) """
 
 MAXIMUM_TARGET_AREA = 4400
 
@@ -332,14 +332,14 @@ def order_points(pts):
     # the bottom-right point will have the largest sum
     s = pts.sum(axis=1)
     rect[0] = pts[np.argmin(s)]
-    rect[3] = pts[np.argmax(s)]
+    rect[2] = pts[np.argmax(s)]
  
     # now, compute the difference between the points, the
     # top-right point will have the smallest difference,
     # whereas the bottom-left will have the largest difference
     diff = np.diff(pts, axis=1)
     rect[1] = pts[np.argmin(diff)]
-    rect[2] = pts[np.argmax(diff)]
+    rect[3] = pts[np.argmax(diff)]
  
     # return the ordered coordinates
     return rect
@@ -424,6 +424,28 @@ def displaycorners(image, outer_corners):
         cv2.circle(image, (int(outer_corners[3,0]),int(outer_corners[3,1])), 6, white,-1)
         cv2.circle(image, (int(outer_corners[4,0]),int(outer_corners[4,1])), 6, red, -1)
 
+# Function that takes a list of 3 corners of a contour and gives you the closest to the center
+
+def minContour(number, contourCorners):
+    xDiff = []
+    minVar = 10000
+    closestCorner = 0
+
+    for i in range(len(contourCorners)):
+        for j in contourCorners[i]:
+            #xDiff.insert([center-(i[0][0]), center-(i[1][0]), center-(i[1][0]), center-(i[1][1])])
+            xDiff.append(abs(number-(j[0][0])))
+            var = min(xDiff)
+            if var < minVar :
+                minVar = var 
+                closestCorner = i 
+            print("i[0][0] data: ", j[0][0])
+
+    print("xDiff: ", xDiff)
+    #print("len of contourCorners: ", len(contourCorners[0]))
+
+    #smallestDiff = min(xDiff)
+    return closestCorner
 
 # Draws Contours and finds center and yaw of vision targets
 # centerX is center x coordinate of image
@@ -481,15 +503,15 @@ def findTape(contours, image, centerX, centerY, mask, CornerMethod, MergeVisionP
                 if (cntArea < 100): continue
 
                 # Filter based on percent fill
-                if (percentfill < 0.52): continue 
+                if (percentfill < 0.48): continue 
 
                 # Filter based on Angle of rotation 
 
-                print("AR:" , ar)
-                print("X: " , x)
-                print("Y: " , y)
-                print("W: " , w)
-                print("H: " , h)
+                #print("AR:" , ar)
+                #print("X: " , x)
+                #print("Y: " , y)
+                #print("W: " , w)
+                #print("H: " , h)
                
                 
 
@@ -514,7 +536,7 @@ def findTape(contours, image, centerX, centerY, mask, CornerMethod, MergeVisionP
                 # Filter based on aspect ratio (previous values: 2-3)
                 #Tape is 13 cm wide by 5 cm high - that gives aspect ration of 2.6
                 #To be flexible, lets accept (1.9 - 3.3) range 
-                if (cntBoundRectAR < 1.9 or cntBoundRectAR > 3.3): continue 
+                if (cntBoundRectAR < 1.9 or cntBoundRectAR > 3.5): continue 
 
                 cv2.rectangle(image,(x,y),(x+w,y+h),(0, 0, 255),1) 
                 
@@ -538,6 +560,9 @@ def findTape(contours, image, centerX, centerY, mask, CornerMethod, MergeVisionP
             # We will work on the filtered contour with the largest area which is the
             # first one in the list
             if (len(cntsFiltered) > 0):
+           
+                #Used to hold the 4 contour Corners
+                contourCorners = []
 
                 
                 cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), white, 2)
@@ -550,11 +575,73 @@ def findTape(contours, image, centerX, centerY, mask, CornerMethod, MergeVisionP
                 #loop through candiates
                 final_center = 0
                 average_area = 0
+                foundCorners = False
 
                 for i in range(len(cntsFiltered)):
 
                     cnt = cntsFiltered[i][0]
                     cntArea = cntsFiltered[i][1]
+
+                   # extLeft = tuple(cnt[cnt[:, :, 0].argmin()][0])
+                   # extRight = tuple(cnt[cnt[:, :, 0].argmax()][0])
+                   # extTop = tuple(cnt[cnt[:, :, 1].argmin()][0])
+                   # extBot = tuple(cnt[cnt[:, :, 1].argmax()][0])
+
+                   # Mat m;//image file
+                   #findContours(m, contours_, hierachy_, RETR_EXTERNAL);
+  
+                    #foundCorners, outer_corners = get_four_points2(cnt,image)
+                    #if (foundCorners):
+                    #     displaycorners(image, outer_corners)
+
+                    #boxes = []
+                  #  rect = cv2.minAreaRect(cnt)
+                  #  box = cv2.boxPoints(rect)
+                    #convert to integers
+                  #  box = np.int0(box)
+
+                  # limit contour to quadrilateral
+                    peri = cv2.arcLength(cnt, True)
+                    corners = cv2.approxPolyDP(cnt, 0.04 * peri, True)
+                    print(corners)
+
+                    if (len(corners) == 4):
+                        foundCorners = True 
+                        print("found 4")
+                        print(corners)
+                        contourCorners.append(corners)
+
+                   # draw quadrilateral on input image from detected corners
+                   # result = img.copy()
+#cv2.polylines(result, [corners], True, (0,0,255), 1, cv2.LINE_AA)
+
+                    #print(box)
+
+                    for i in corners:
+                        cv2.circle(image,(i[0][0],i[0][1]), 3, (0,255,0), -1)
+                        print("x value",  i[0][0])
+                    #box = np.int0(box)
+                    #boxes.append(box)
+
+                    #cv2.drawContours(image,[box],0,(36,255,12),2)
+                    #cv2.fillPoly(mask, [box], (255,255,255))
+
+                    # Find corners on the mask
+                     #mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+                    #corners = cv2.goodFeaturesToTrack(mask, maxCorners=4, qualityLevel=0.5, minDistance=50)
+                    
+                    #for corner in corners:
+                    #    x,y = corner.ravel()
+                    #    cv2.circle(image,(x,y),8,(255,120,255),-1)
+                    #    print("({}, {})".format(x,y))
+
+                    #displaycorners(image, corners)
+
+                   # cv2.circle(image, extLeft, 8, (0, 0, 255), -1)
+                   # cv2.circle(image, extRight, 8, (0, 255, 0), -1)
+                   # cv2.circle(image, extTop, 8, (255, 0, 0), -1)
+                   # cv2.circle(image, extBot, 8, (255, 255, 0), -1)
+
 
                     #Calculate the Center of each Contour
                     M = cv2.moments(cnt)
@@ -572,16 +659,18 @@ def findTape(contours, image, centerX, centerY, mask, CornerMethod, MergeVisionP
                 final_center = round(final_center / len(cntsFiltered))
                 average_area = average_area / len(cntsFiltered)
 
-                print("Final_Center: ", final_center)
+                #Add Array to go through 4 corners, find nearest contour to final_center
+
+                print("contourCorners:", len(contourCorners))
+                print("Average_AREA: ", average_area)
 
                 #cv2.line(image, (final_center, screenHeight), (final_center, 0), green, 2)
+
+               # outer_corners, rw_coordinates = get_four_points_with3(cnt)
+                
                
 
                 YawToTarget = calculateYaw(final_center, centerX, H_FOCAL_LENGTH)
-
-
-                    
-
 
 
             #  cnt = cntsFiltered[0]
@@ -641,9 +730,44 @@ def findTape(contours, image, centerX, centerY, mask, CornerMethod, MergeVisionP
                 # else:
                 #     pass
 
-                # if (foundCorners):
-                #     displaycorners(image, outer_corners)
-                #     success, rvec, tvec = findTvecRvec(image, outer_corners, rw_coordinates) 
+                success = False
+
+                if (foundCorners):
+                     #displaycorners(image, outer_corners)
+
+                     if len(contourCorners) > 2:
+                        closestCorner = minContour(final_center, contourCorners)
+                        print("Closest Corner:", closestCorner)
+                        pnpCorners = contourCorners[closestCorner]
+                     else:
+                        pnpCorners = contourCorners[0]
+                
+                     print("pnpCorners:", pnpCorners[0][0])
+                     # pnpCorners[0] = tuple(cnt[cnt[:,:,0].argmin()][0])
+                
+                    # unpack corners
+
+                     corner = []
+
+                     for i in pnpCorners:
+                        corner.append((i[0][0],i[0][1]))
+                
+                     outer_corners = np.array([corner[0], corner[1], corner[2], corner[3]])
+                    
+                     print("outer1: ", outer_corners)
+
+                     outer_corners = order_points(outer_corners)
+                     print("outer order: ", outer_corners)
+
+                    # outer_corners = np.array((pnpCorners[0][0],pnpCorners[0][1]), (pnpCorners[1][0],pnpCorners[1][1]), corner3, corner4)
+                
+                     print("outer_corners", outer_corners)
+                     print("real_world_cordinates", real_world_coordinates)
+
+                     print("Final_Center: ", final_center)
+                     print("Average_AREA: ", average_area)
+
+                     success, rvec, tvec = findTvecRvec(image, outer_corners, real_world_coordinates) 
 
                 #     #Calculate the Yaw
                 #     M = cv2.moments(cnt)
@@ -655,15 +779,18 @@ def findTape(contours, image, centerX, centerY, mask, CornerMethod, MergeVisionP
 
                 #     YawToTarget = calculateYaw(cx, centerX, H_FOCAL_LENGTH) 
                     
-                    # If success then print values to screen                               
-                    #if success:
-                     #   distance, angle1, angle2 = compute_output_values(rvec, tvec)
-                        #calculate RobotYawToTarget based on Robot offset (subtract 180 degrees)
-                      #  RobotYawToTarget = 180-abs(angle2)
                 cv2.putText(image, "TargetYaw: " + str(YawToTarget), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
-            # cv2.putText(image, "Distance: " + str(round((distance/12),2)), (20, 460), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
-                #cv2.putText(image, "RobotYawToTarget: " + str(round(RobotYawToTarget,2)), (40, 420), cv2.FONT_HERSHEY_COMPLEX, .6,white)
-                #cv2.putText(image, "SolvePnPTargetYawToCenter: " + str(round(angle1,2)), (40, 460), cv2.FONT_HERSHEY_COMPLEX, .6,white)
+                cv2.putText(image, "Average Area: " + str(average_area), (20, 240), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+
+                # If success then print values to screen                               
+                if success:
+                    distance, angle1, angle2 = compute_output_values(rvec, tvec)
+                    #calculate RobotYawToTarget based on Robot offset (subtract 180 degrees)
+                    RobotYawToTarget = 180-abs(angle2)
+          
+                    cv2.putText(image, "Distance: " + str(round((distance/12),2)), (20, 600), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+                    cv2.putText(image, "RobotYawToTarget: " + str(round(RobotYawToTarget,2)), (40, 420), cv2.FONT_HERSHEY_COMPLEX, .6,white)
+                    cv2.putText(image, "SolvePnPTargetYawToCenter: " + str(round(angle1,2)), (40, 460), cv2.FONT_HERSHEY_COMPLEX, .6,white)
                 
                 #start with a non-existing colour
                 
@@ -707,22 +834,24 @@ def findTape(contours, image, centerX, centerY, mask, CornerMethod, MergeVisionP
 
                 #publishResults(name,value)
                 publishNumber(MergeVisionPipeLineTableName, "YawToTarget", YawToTarget)
-                #publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", round(distance/12,2))
-                #publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", round(RobotYawToTarget,2))
+
+                if success:
+                    publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", round(distance/12,2))
+                    publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", round(RobotYawToTarget,2))
                        
             else:
                 #If Nothing is found, publish -99 and -1 to Network table
                 publishNumber(MergeVisionPipeLineTableName, "YawToTarget", -99)
-              #  publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1)  
-              #  publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99)
+                publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1)  
+                publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99)
                 publishString("blingTable","command","clear")
 
 
     else:
         #If Nothing is found, publish -99 and -1 to Network table
         publishNumber(MergeVisionPipeLineTableName, "YawToTarget", -99)
-        #publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1) 
-        #publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99) 
+        publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1) 
+        publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99) 
         publishString("blingTable","command","clear")    
              
     #     # pushes vision target angle to network table
