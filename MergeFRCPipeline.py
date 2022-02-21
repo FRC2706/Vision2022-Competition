@@ -133,7 +133,7 @@ class WebcamVideoStream:
                     self.switchTape = True
                     #self.prevValue = self.autoExpose
 
-            elif switch == 3: #Power Cell Mode - set exposure to 39
+            elif switch == 3: #Cargo Mode - set exposure to 39
                 #self.autoExpose = False
                 #if self.autoExpose != self.prevValue:
                 if self.switchBall != True:
@@ -201,7 +201,7 @@ with open(pipelineConfig) as json_file:
 
 MergeVisionPipeLineTableName = data["networkTableName"]
 TapeEnabled = data["Tape"]
-PowerCellEnabled = data["PowerCell"]
+CargoEnabled = data["Cargo"]
 OutputStream = data["OutputStream"]
 ExposureTape = data["ExposureTarget"]
 ExposureBall = data["ExposureBall"]
@@ -209,7 +209,7 @@ ExposureBall = data["ExposureBall"]
 if TapeEnabled:
     switch = 2
 
-if PowerCellEnabled:
+if CargoEnabled:
     switch = 3
 
 class CameraConfig: pass
@@ -380,7 +380,7 @@ if __name__ == "__main__":
     #PipeLine Table Values, Unique for Each PipeLine
     networkTableVisionPipeline.putBoolean("Driver", False)
     networkTableVisionPipeline.putBoolean("Tape", TapeEnabled)
-    networkTableVisionPipeline.putBoolean("PowerCell", PowerCellEnabled)
+    networkTableVisionPipeline.putBoolean("Caro", CargoEnabled)
     #networkTable.putBoolean("ControlPanel", False)
     networkTableVisionPipeline.putBoolean("WriteImages", False)
     networkTableVisionPipeline.putBoolean("SendMask", False)
@@ -494,15 +494,23 @@ if __name__ == "__main__":
                 cv2.putText(processed, "RPM: " + str(round(rpm,2)), (20, 340), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
 
         else:
-            if (networkTableVisionPipeline.getBoolean("PowerCell", True)):
-                # Checks if you just want to look for PowerCells
+            if (networkTableVisionPipeline.getBoolean("Cargo", True)):
+                # Checks if you just want to look for Cargo
                 switch = 3
-                boxBlur = blurImg(frame, yellow_blur)
-                threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
+ #               boxBlur = blurImg(frame, yellow_blur)
+ #               threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
+                if Red:
+                    boxBlur = blurImg(frame, red_blur)
+                    threshold = threshold_video(lower_red, upper_red, boxBlur)
+                    processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+                elif Blue:
+                    boxBlur = blurImg(frame, blue_blur)
+                    threshold = threshold_video(lower_blue, upper_blue, boxBlur)
+ 
                 if (networkTableVisionPipeline.getBoolean("SendMask", False)):
                     processed = threshold
                 else:   
-                    processed = findPowerCell(frame, threshold, MergeVisionPipeLineTableName)
+                    processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
 
         # Puts timestamp of camera on network tables
         networkTableVisionPipeline.putNumber("VideoTimestamp", timestamp)
