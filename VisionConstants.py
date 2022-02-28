@@ -21,8 +21,8 @@ horizontalView = math.atan(math.tan(diagonalView / 2) * (horizontalAspect / diag
 verticalView = math.atan(math.tan(diagonalView / 2) * (verticalAspect / diagonalAspect)) * 2
 
 # MAY CHANGE IN FUTURE YEARS! This is the aspect ratio used in 2022
-image_width = 720 # 4
-image_height = 1280 # 3
+image_width = 1280 # 4  
+image_height = 720 # 3  
 
 H_FOCAL_LENGTH = image_width / (2 * math.tan((horizontalView / 2)))
 V_FOCAL_LENGTH = image_height / (2 * math.tan((verticalView / 2)))

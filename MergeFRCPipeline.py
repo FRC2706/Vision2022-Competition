@@ -384,7 +384,7 @@ if __name__ == "__main__":
     networkTableVisionPipeline.putBoolean("Tape", TapeEnabled)
     networkTableVisionPipeline.putBoolean("Cargo", CargoEnabled)
     networkTableVisionPipeline.putBoolean("Red", RedEnabled)
-    networkTableVisionPipeline.putBoolean("RedBlue", BlueEnabled)
+    networkTableVisionPipeline.putBoolean("Blue", BlueEnabled)
     #networkTable.putBoolean("ControlPanel", False)
     networkTableVisionPipeline.putBoolean("WriteImages", False)
     networkTableVisionPipeline.putBoolean("SendMask", False)
