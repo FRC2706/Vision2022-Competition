@@ -55,8 +55,8 @@ webCamNumber = 1
 
 # ADJUST DESIRED TARGET BASED ON VIDEO OR FILES ABOVE !!!
 Driver = False
-Tape = True 
-PowerCell = False
+Tape = False 
+Cargo = True
 Red = True 
 Blue = False
 
@@ -92,16 +92,12 @@ elif useWebCam: #test against live camera
     showAverageFPS = True
 
 else:  # implies images are to be read
-    # Power Cell Images
-    #images, imagename = load_images_from_folder("./PowerCellFullScale")
-    #images, imagename = load_images_from_folder("./PowerCellFullMystery")
-    #images, imagename = load_images_from_folder("./PowerCellFullRobot")
-    #images, imagename = load_images_from_folder("./VisionCargoImages")
-    #images, imagename = load_images_from_folder("./VisionCargoImagesActual")
+    # Cargo Images
+    images, imagename = load_images_from_folder("./HighCamAngleDown")
    
 
     # Outer Target Images
-    images, imagename = load_images_from_folder("./HubImgFRC")
+    #images, imagename = load_images_from_folder("./HubImgFRC")
     #images, imagename = load_images_from_folder("./HubImgSketchup")
 
 
@@ -180,15 +176,15 @@ while stayInLoop or cap.isOpened():
             threshold = threshold_video(lower_green, upper_green, frame)
             processed = findTargets(frame, threshold, Method, MergeVisionPipeLineTableName)
         else:
-            if PowerCell:
+            if Cargo:
                 if Red:
                     boxBlur = blurImg(frame, red_blur)
                     threshold = threshold_video(lower_red, upper_red, boxBlur)
-                    processed = findPowerCell(frame, threshold, MergeVisionPipeLineTableName)
+                    processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
                 elif Blue:
                     boxBlur = blurImg(frame, blue_blur)
                     threshold = threshold_video(lower_blue, upper_blue, boxBlur)
-                    processed = findPowerCell(frame, threshold, MergeVisionPipeLineTableName)
+                    processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
     # end of cycle so update counter
     #fps.update()
     # in merge view also end of time we want to measure so stop FPS
