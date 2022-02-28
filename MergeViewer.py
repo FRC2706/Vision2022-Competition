@@ -25,9 +25,6 @@ import sys
 import numpy as np
 
 from threading import Thread
-from CornersVisual4 import get_four
-from adrian_pyimage import FPS
-from adrian_pyimage import WebcamVideoStream
 
 # Imports EVERYTHING from these files
 from FindBall import *
@@ -55,7 +52,7 @@ webCamNumber = 1
 
 # ADJUST DESIRED TARGET BASED ON VIDEO OR FILES ABOVE !!!
 Driver = False
-Tape = False 
+Tape = False
 Cargo = True
 Red = True 
 Blue = False
@@ -110,19 +107,6 @@ server = True
 MergeVisionPipeLineTableName = "DummyNetworkTableName"
 cameraConfigs = []
 
-# Method 1 is based on measuring distance between leftmost and rightmost
-# Method 2 is based on measuring the minimum enclosing circle
-# Method 3 is based on measuring the major axis of the minimum enclsing ellipse
-# Method 4 is a three point SolvePNP solution for distance (John and Jeremy)
-# Method 5 is a four point SolvePNP solution for distance (John and Jeremy)
-# Method 6 is a four point (version A) SolvePNP solution for distance (Robert, Rachel and Rebecca)
-# Method 7 is a four point (version B) SolvePNP solution for distance (Robert, Rachel and Rebecca)
-# Method 8 is a four point visual method using SolvePNP (Brian and Erik)
-# Method 9 is a five point visual method using SolvePNP (Brian and Erik)
-# Method 10 is a four point SolvePNP blending M7 and M8 (everybody!)
-
-Method = 3
-
 if useVideo and not useWebCam:
     cap = cv2.VideoCapture(videoname)
 
@@ -174,17 +158,17 @@ while stayInLoop or cap.isOpened():
     else:
         if Tape:
             threshold = threshold_video(lower_green, upper_green, frame)
-            processed = findTargets(frame, threshold, Method, MergeVisionPipeLineTableName)
+            processed = findTargets(frame, threshold, MergeVisionPipeLineTableName)
         else:
             if Cargo:
                 if Red:
                     boxBlur = blurImg(frame, red_blur)
                     threshold = threshold_video(lower_red, upper_red, boxBlur)
-                    processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
                 elif Blue:
                     boxBlur = blurImg(frame, blue_blur)
                     threshold = threshold_video(lower_blue, upper_blue, boxBlur)
-                    processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+                processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+
     # end of cycle so update counter
     #fps.update()
     # in merge view also end of time we want to measure so stop FPS

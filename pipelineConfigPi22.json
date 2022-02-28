@@ -1,0 +1,10 @@
+{
+    "networkTableName": "MergeVisionPipelinePi22",
+    "Tape": false,
+    "Cargo": false,
+    "Red": false,
+    "Blue": false,
+    "OutputStream": "2706_out_driver",
+    "ExposureTarget": 34,
+    "ExposureBall": 100
+}

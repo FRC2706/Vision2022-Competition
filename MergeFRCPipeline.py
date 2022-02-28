@@ -395,21 +395,6 @@ if __name__ == "__main__":
     matchNumberDefault = random.randint(1, 1000)
     processed = 0
 
-    # choose Method HERE !!!!!
-    Method = 7 # likely not needed
-    networkTableVisionPipeline.putNumber("Method", 7)
-
-    # Method 1 is based on measuring distance between leftmost and rightmost
-    # Method 2 is based on measuring the minimum enclosing circle
-    # Method 3 is based on measuring the major axis of the minimum enclsing ellipse
-    # Method 4 is a three point SolvePNP solution for distance (John and Jeremy)
-    # Method 5 is a four point SolvePNP solution for distance (John and Jeremy)
-    # Method 6 is a four point (version A) SolvePNP solution for distance (Robert, Rachel and Rebecca)
-    # Method 7 is a four point (version B) SolvePNP solution for distance (Robert, Rachel and Rebecca)
-    # Method 8 is a four point visual method using SolvePNP (Brian and Erik)
-    # Method 9 is a five point visual method using SolvePNP (Brian and Erik)
-    # Method 10 is a four point SolvePNP blending M7 and M8 (everybody!)
-
     #Setup variables for average framecount
     frameCount = 0
     averageTotal = 0
@@ -486,12 +471,12 @@ if __name__ == "__main__":
         #Check if Network Table value Tape is True
         if (networkTableVisionPipeline.getBoolean("Tape", True)):
             switch = 2
-            Method = int(networkTableVisionPipeline.getNumber("Method", 7))
+            #Method = int(networkTableVisionPipeline.getNumber("Method", 7))
             threshold = threshold_video(lower_green, upper_green, frame)
             if (networkTableVisionPipeline.getBoolean("SendMask", False)):
                 processed = threshold
             else:    
-                processed = findTargets(frame, threshold, Method, MergeVisionPipeLineTableName)
+                processed = findTargets(frame, threshold, MergeVisionPipeLineTableName)
 
                 #Read RPM From Network Table
                 rpm = networkTableVisionPipeline.getNumber("RPM", 0)
