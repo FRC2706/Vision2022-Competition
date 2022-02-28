@@ -2,6 +2,8 @@
     "networkTableName": "MergeVisionPipelinePi21",
     "Tape": true,
     "Cargo": false,
+    "Red": true,
+    "Blue": false,
     "OutputStream": "2706_out_target",
     "ExposureTarget": 17,
     "ExposureBall": 100

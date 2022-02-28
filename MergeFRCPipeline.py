@@ -202,6 +202,8 @@ with open(pipelineConfig) as json_file:
 MergeVisionPipeLineTableName = data["networkTableName"]
 TapeEnabled = data["Tape"]
 CargoEnabled = data["Cargo"]
+RedEnabled = data["Red"]
+BlueEnabled = data["Blue"]
 OutputStream = data["OutputStream"]
 ExposureTape = data["ExposureTarget"]
 ExposureBall = data["ExposureBall"]
@@ -380,7 +382,9 @@ if __name__ == "__main__":
     #PipeLine Table Values, Unique for Each PipeLine
     networkTableVisionPipeline.putBoolean("Driver", False)
     networkTableVisionPipeline.putBoolean("Tape", TapeEnabled)
-    networkTableVisionPipeline.putBoolean("Caro", CargoEnabled)
+    networkTableVisionPipeline.putBoolean("Cargo", CargoEnabled)
+    networkTableVisionPipeline.putBoolean("Red", RedEnabled)
+    networkTableVisionPipeline.putBoolean("RedBlue", BlueEnabled)
     #networkTable.putBoolean("ControlPanel", False)
     networkTableVisionPipeline.putBoolean("WriteImages", False)
     networkTableVisionPipeline.putBoolean("SendMask", False)
@@ -499,11 +503,11 @@ if __name__ == "__main__":
                 switch = 3
  #               boxBlur = blurImg(frame, yellow_blur)
  #               threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
-                if Red:
+                if (networkTableVisionPipeline.getBoolean("Red", True)):
                     boxBlur = blurImg(frame, red_blur)
                     threshold = threshold_video(lower_red, upper_red, boxBlur)
                     processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
-                elif Blue:
+                elif (networkTableVisionPipeline.getBoolean("Blue", True)):
                     boxBlur = blurImg(frame, blue_blur)
                     threshold = threshold_video(lower_blue, upper_blue, boxBlur)
  
