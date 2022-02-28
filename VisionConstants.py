@@ -20,21 +20,21 @@ diagonalAspect = math.hypot(horizontalAspect, verticalAspect)
 horizontalView = math.atan(math.tan(diagonalView / 2) * (horizontalAspect / diagonalAspect)) * 2
 verticalView = math.atan(math.tan(diagonalView / 2) * (verticalAspect / diagonalAspect)) * 2
 
-# MAY CHANGE IN FUTURE YEARS! This is the aspect ratio used in 2020
-image_width = 640 # 4
-image_height = 480 # 3
+# MAY CHANGE IN FUTURE YEARS! This is the aspect ratio used in 2022
+image_width = 1280 # 4  
+image_height = 720 # 3  
 
 H_FOCAL_LENGTH = image_width / (2 * math.tan((horizontalView / 2)))
 V_FOCAL_LENGTH = image_height / (2 * math.tan((verticalView / 2)))
 
-#TARGET_HEIGHT is actual height (for balls 7/12 equal ball height in feet)   
-TARGET_BALL_HEIGHT = 0.583
+#CARGO_HEIGHT is actual height (for cargo height in feet)   
+CARGO_BALL_HEIGHT = 0.791667
 
 #image height is the y resolution calculated from image size
-#15.81 was the pixel height of a a ball found at a measured distance (which is 6 feet away)
+#223 is the pixel height of a a ball found at a measured distance (which is 4 feet away)
 #65 is the pixel height of a scale image 6 feet away
-KNOWN_BALL_PIXEL_HEIGHT = 65
-KNOWN_BALL_DISTANCE = 6
+KNOWN_CARGO_PIXEL_HEIGHT = 223
+KNOWN_CARGO_DISTANCE = 4
 
 # Focal Length calculations: https://docs.google.com/presentation/d/1ediRsI-oR3-kwawFJZ34_ZTlQS2SDBLjZasjzZ-eXbQ/pub?start=false&loop=false&slide=id.g12c083cffa_0_165
 # H_FOCAL_LENGTH = image_width / (2 * math.tan((horizontalView / 2)))
@@ -68,10 +68,10 @@ lower_yellow = np.array([10, 150, 65]) # was 14, 150, 150
 upper_yellow = np.array([30, 255, 255])
 
 # masks for red and blue cargo (HSV)
-lower_red = np.array([163,140,0])
+lower_red = np.array([138,106,123])
 upper_red = np.array([180,255,255])
 
-lower_blue = np.array([104,66,0]) 
-upper_blue = np.array([137,255,255]) 
+lower_blue = np.array([64,127,116]) 
+upper_blue = np.array([115,213,255]) 
 
 blingColour = 0
