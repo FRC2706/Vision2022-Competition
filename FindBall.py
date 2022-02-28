@@ -12,17 +12,17 @@ try:
 except ImportError:
     from NetworkTablePublisher import *
 
-# Note that findPowerCell uses findBall which uses checkBall
+# Note that findCargo uses findBall which uses checkBall
 
-# Draws on the image - > contours and finds center and yaw of nearest powercell, and second nearest
-# Puts on network tables -> Yaw and Distance to nearest yellow ball, Yaw to second nearest powercell
+# Draws on the image - > contours and finds center and yaw of nearest cargo
+# Puts on network tables -> Yaw and Distance to nearest cargo ball
 # frame is the original images, mask is a binary mask based on desired color
 # centerX is center x coordinate of image
 # centerY is center y coordinate of image
 # MergeVisionPipeLineTableName is the Network Table destination for yaw and distance
 
 # Finds the balls from the masked image and displays them on original stream + network tables
-def findPowerCell(frame, mask, MergeVisionPipeLineTableName):
+def findCargo(frame, mask, MergeVisionPipeLineTableName):
     # Finds contours
     if is_cv3():
         _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
@@ -52,8 +52,8 @@ def findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName):
         # Sort contours by area size (biggest to smallest)
         cntsSorted = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)[:5]
         cntHeight = 0
-        biggestPowerCell = []
-        pairOfPowerCells = []
+        biggestCargo = []
+        
         for cnt in cntsSorted:
             x, y, w, h = cv2.boundingRect(cnt)
 
@@ -67,7 +67,7 @@ def findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName):
             #percentage of contour in bounding rect
             boundingRectContArea = float(cntArea/boundingRectArea)
             #print("Percentage contour area in bounding rect: " + str(boundingRectContArea))
-            #cntHeight = h
+            cntHeight = h
             #find the height of the bottom (y position of contour)
             # which is just the y value plus the height
             bottomHeight = y+h
@@ -84,7 +84,7 @@ def findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName):
                     cy = int(M["m01"] / M["m00"])
                 else:
                     cx, cy = 0, 0
-                if (len(biggestPowerCell) < 3):
+                if (len(biggestCargo) < 3):
 
                     ##### DRAWS CONTOUR######
                     # Gets rotated bounding rectangle of contour
@@ -106,38 +106,29 @@ def findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName):
                     cv2.rectangle(image, (x, y), (x + w, y + h), red, 1)
                    
                     # Appends important info to array
-                    if [cx, cy, cnt, bottomHeight] not in biggestPowerCell:
-                        biggestPowerCell.append([cx, cy, cnt, bottomHeight])
-                        pairOfPowerCells.append(cnt)
+                    if [cx, cy, cnt, bottomHeight] not in biggestCargo:
+                        biggestCargo.append([cx, cy, cnt, bottomHeight, cntHeight])
+                    
 
-        # Check if there are PowerCell seen
-        if (len(biggestPowerCell) > 0):
+        # Check if there are Cargo seen
+        if (len(biggestCargo) > 0):
             # copy
-            tallestPowerCell = biggestPowerCell
+            tallestCargo = biggestCargo
 
             # pushes that it sees cargo to network tables
 
             finalTarget = []
             # Sorts targets based on tallest height (bottom of contour to top of screen or y position)
-            tallestPowerCell.sort(key=lambda height: math.fabs(height[3]))
+            tallestCargo.sort(key=lambda height: math.fabs(height[3]))
 
-            # Sorts targets based on area for end of trench situation, calculates average yaw
-            pairOfPowerCells = sorted(pairOfPowerCells, key=lambda x: cv2.contourArea(x), reverse=True)[:2]
-            if len(pairOfPowerCells) >= 2:
-                M0 = cv2.moments(pairOfPowerCells[0])
-                M1 = cv2.moments(pairOfPowerCells[1])
-                if M0["m00"] != 0 and M1["m00"] != 0:
-                    cx0 = int(M0["m10"] / M0["m00"])
-                    cx1 = int(M1["m10"] / M1["m00"])    
-                    avecxof2 = int((cx0+cx1)/2.0)
 
-            #sorts closestPowerCell - contains center-x, center-y, contour and contour height from the
+            #sorts closestCargo - contains center-x, center-y, contour and contour height from the
             #bounding rectangle.  The closest one has the largest bottom point
-            closestPowerCell = min(tallestPowerCell, key=lambda height: (math.fabs(height[3] - centerX)))
+            closestCargo = min(tallestCargo, key=lambda height: (math.fabs(height[3] - centerX)))
 
             # extreme points
-            #topmost = tuple(closestPowerCell[2][closestPowerCell[2][:,:,1].argmin()][0])
-            bottommost = tuple(closestPowerCell[2][closestPowerCell[2][:,:,1].argmax()][0])
+            #topmost = tuple(closestCargo[2][closestCargo[2][:,:,1].argmin()][0])
+            bottommost = tuple(closestCargo[2][closestCargo[2][:,:,1].argmax()][0])
 
             # draw extreme points
             # from https://www.pyimagesearch.com/2016/04/11/finding-extreme-points-in-contours-with-opencv/
@@ -156,7 +147,7 @@ def findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName):
             # pixel as 479, probably because 0-479 = 480 pixel rows
             if (int(bottommost[1]) >= screenHeight - 1):
                 # This is handing over centoid X when bottommost is in bottom row
-                xCoord = closestPowerCell[0]
+                xCoord = closestCargo[0]
             else:
                 # This is handing over X of bottommost point
                 xCoord = bottommost[0]   
@@ -164,38 +155,27 @@ def findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName):
             # calculate yaw and store in finalTarget0
             finalTarget.append(calculateYaw(xCoord, centerX, H_FOCAL_LENGTH))
             # calculate dist and store in finalTarget1
-            finalTarget.append(calculateDistWPILibRyan(closestPowerCell[3],TARGET_BALL_HEIGHT,KNOWN_BALL_PIXEL_HEIGHT,KNOWN_BALL_DISTANCE ))
+            finalTarget.append(calculateDistWPILib(closestCargo[4],CARGO_BALL_HEIGHT,KNOWN_CARGO_PIXEL_HEIGHT,KNOWN_CARGO_DISTANCE ))
             # calculate yaw from pure centroid and store in finalTarget2
-            finalTarget.append(calculateYaw(closestPowerCell[0], centerX, H_FOCAL_LENGTH))
-
-            # calculate yaw to two largest contours for end trench condition, store in finalTarget3
-            if (len(biggestPowerCell) > 1):
-                finalTarget.append(calculateYaw(avecxof2, centerX, H_FOCAL_LENGTH))
+            finalTarget.append(calculateYaw(closestCargo[0], centerX, H_FOCAL_LENGTH))
 
             #print("Yaw: " + str(finalTarget[0]))
             # Puts the yaw on screen
             # Draws yaw of target + line where center of target is
-            finalYaw = round(finalTarget[1]*1000)/1000
+            #finalYaw = round(finalTarget[1]*1000)/1000
             cv2.putText(image, "Yaw: " + str(finalTarget[0]), (40, 360), cv2.FONT_HERSHEY_COMPLEX, .6,
                         white)
-            cv2.putText(image, "Dist: " + str(finalYaw), (40, 400), cv2.FONT_HERSHEY_COMPLEX, .6,
+            cv2.putText(image, "Dist: " + str(finalTarget[1]), (40, 400), cv2.FONT_HERSHEY_COMPLEX, .6,
                         white)
             cv2.line(image, (xCoord, screenHeight), (xCoord, 0), blue, 2)
 
             cv2.putText(image, "cxYaw: " + str(finalTarget[2]), (450, 360), cv2.FONT_HERSHEY_COMPLEX, .6,
                         white)
-            if (len(biggestPowerCell) > 1):
-                cv2.putText(image, "cxYaw2: " + str(finalTarget[3]), (450, 400), cv2.FONT_HERSHEY_COMPLEX, .6,
-                        white)
 
-            # pushes power cell angle to network tables
-            publishNumber(MergeVisionPipeLineTableName, "YawToPowerCell", finalTarget[0])
-            publishNumber(MergeVisionPipeLineTableName, "DistanceToPowerCell", finalYaw)
-            publishNumber(MergeVisionPipeLineTableName, "PowerCentroid1Yaw", finalTarget[2])
-            if (len(biggestPowerCell) > 1):
-                publishNumber(MergeVisionPipeLineTableName, "PowerCentroid2Yaw", finalTarget[3])
-                cv2.line(image, (avecxof2, int(screenHeight*0.7)), (avecxof2, int(screenHeight*0.3)), green, 2)
-
+            # pushes cargo angle to network tables
+            publishNumber(MergeVisionPipeLineTableName, "YawToCargo", finalTarget[0])
+            publishNumber(MergeVisionPipeLineTableName, "DistanceToCargo", finalTarget[1])
+            publishNumber(MergeVisionPipeLineTableName, "CargoCentroid1Yaw", finalTarget[2])
 
         cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), white, 2)
 
@@ -205,15 +185,14 @@ def findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName):
 def checkBall(cntArea, image_width,boundingRectContArea):
     #this checks that the area of the contour is greater than the image width divide by 2
     #It also checks the percentage of the area of the bounding rectangle is
-    #greater than 30%.  A single ball is usually 70-80% while groups of balls are usually
-    #above 44% so using 30% is conservative
+    #greater than 69%.  
     #print("cntArea " + str(cntArea))
-    return (cntArea > (image_width*2)) and (boundingRectContArea > 0.30)
+    return (cntArea > (image_width*2)) and (boundingRectContArea > 0.69)
 
 if __name__ == "__main__":
 
     # the purpose of this code is to test the functions above
-    # findPowerCell uses findBall which uses checkBall
+    # findCargo uses findBall which uses checkBall
     # this test does not use a real network table
     # TODO #2 get network tables working in test code
 
@@ -238,8 +217,8 @@ if __name__ == "__main__":
     # use a dummy network table for test code for now, real network tables not working
     MergeVisionPipeLineTableName = "DummyNetworkTableName"
 
-    # use findPowerCell, which uses findBall, which uses checkBall to generate image
-    bgrTestFoundBall = findPowerCell(bgrTestImage, mskBinary, MergeVisionPipeLineTableName)
+    # use findCargo, which uses findBall, which uses checkBall to generate image
+    bgrTestFoundBall = findCargo(bgrTestImage, mskBinary, MergeVisionPipeLineTableName)
 
     # display the visual output (nearest based on height) of findBall to verify it visually
     cv2.imshow('Test of 1 ball findBall output', bgrTestFoundBall)
@@ -272,8 +251,8 @@ if __name__ == "__main__":
     # use a dummy network table for test code for now, real network tables not working
     MergeVisionPipeLineTableName = "DummyNetworkTableName"
 
-    # use findPowerCell, which uses findBall, which uses checkBall to generate image
-    bgrTestFoundBall = findPowerCell(bgrTestImage, mskBinary, MergeVisionPipeLineTableName)
+    # use findCargo, which uses findBall, which uses checkBall to generate image
+    bgrTestFoundBall = findCargo(bgrTestImage, mskBinary, MergeVisionPipeLineTableName)
 
     # display the visual output (nearest based on height) of findBall to verify it visually
     cv2.imshow('Test of 2 ball findBall output', bgrTestFoundBall)
