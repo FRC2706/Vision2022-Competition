@@ -122,18 +122,25 @@ def findTvecRvec(image, outer_corners, real_world_coordinates):
  
     focal_length = size[1]
     center = (size[1]/2, size[0]/2)
-    # camera_matrix = np.array(
-    #                      [[H_FOCAL_LENGTH, 0, center[0]],
-    #                      [0, V_FOCAL_LENGTH, center[1]],
-    #                      [0, 0, 1]], dtype = "double"
-    #                      )
+    camera_matrix = np.array(
+                          [[H_FOCAL_LENGTH, 0, center[0]],
+                          [0, V_FOCAL_LENGTH, center[1]],
+                          [0, 0, 1]], dtype = "double"
+                          )
 
     dist_coeffs = np.array([[0.16171335604097975, -0.9962921370737408, -4.145368586842373e-05, 
                              0.0015152030328047668, 1.230483016701437]])
 
-    camera_matrix = np.array([[676.9254672222575, 0.0, 303.8922263320326], 
-                              [0.0, 677.958895098853, 226.64055316186037], 
-                              [0.0, 0.0, 1.0]], dtype = "double")
+    print(camera_matrix)
+    # This is tested for a 640x480 resolution
+    # Should be 
+    #     Fx  0  Cx
+    #     0  Fy  Cy
+    #     0   0  1
+    #  Cx and Cy are close to center of image,  Fx and Fy are focal lengths in pixel units
+    #camera_matrix = np.array([[676.9254672222575, 0.0, 303.8922263320326], 
+    #                          [0.0, 677.958895098853, 226.64055316186037], 
+    #                          [0.0, 0.0, 1.0]], dtype = "double")
 
     #print("Camera Matrix :\n {0}".format(camera_matrix))                           
  
@@ -154,7 +161,7 @@ def compute_output_values(rvec, tvec):
 
     # The tilt angle only affects the distance and angle1 calcs
     # This is a major impact on calculations
-    tilt_angle = math.radians(35)
+    tilt_angle = math.radians(28)
 
     x = tvec[0][0]
     z = math.sin(tilt_angle) * tvec[1][0] + math.cos(tilt_angle) * tvec[2][0]
@@ -209,7 +216,7 @@ def minContour(number, contourCorners):
                 closestCorner = i 
             print("i[0][0] data: ", j[0][0])
 
-    print("xDiff: ", xDiff)
+    #print("xDiff: ", xDiff)
     #print("len of contourCorners: ", len(contourCorners[0]))
 
     #smallestDiff = min(xDiff)
@@ -261,8 +268,8 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
 
                 percentfill = (cntArea/(w*h))
 
-                print("cntArea: " , cntArea)
-                print("percent fill: ",(cntArea/(w*h)) )
+                #print("cntArea: " , cntArea)
+                #print("percent fill: ",(cntArea/(w*h)) )
 
                 #Filter based on too larger contour 
                 if (cntArea > 1000): continue
@@ -298,8 +305,8 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                 cntMinAreaAR = float(wr)/hr
                 cntBoundRectAR = float(w)/h
 
-                print ("cntBoundRectAR: " , cntBoundRectAR)
-                print ("cntMinAreaAR: " , cntMinAreaAR)
+                #print ("cntBoundRectAR: " , cntBoundRectAR)
+                #print ("cntMinAreaAR: " , cntMinAreaAR)
 
                 # Filter based on aspect ratio (previous values: 2-3)
                 #Tape is 13 cm wide by 5 cm high - that gives aspect ration of 2.6
@@ -354,12 +361,12 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                   # limit contour to quadrilateral
                     peri = cv2.arcLength(cnt, True)
                     corners = cv2.approxPolyDP(cnt, 0.04 * peri, True)
-                    print(corners)
+                    #print(corners)
 
                     if (len(corners) == 4):
                         foundCorners = True 
-                        print("found 4")
-                        print(corners)
+                        #print("found 4")
+                        #print(corners)
                         contourCorners.append(corners)
 
                    # draw quadrilateral on input image from detected corners
@@ -404,8 +411,8 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
 
                 #Add Array to go through 4 corners, find nearest contour to final_center
 
-                print("contourCorners:", len(contourCorners))
-                print("Average_AREA: ", average_area)
+                #print("contourCorners:", len(contourCorners))
+                #print("Average_AREA: ", average_area)
 
 
                 YawToTarget = calculateYaw(final_center, centerX, H_FOCAL_LENGTH)
@@ -417,12 +424,12 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
 
                      if len(contourCorners) > 2:
                         closestCorner = minContour(final_center, contourCorners)
-                        print("Closest Corner:", closestCorner)
+                        #print("Closest Corner:", closestCorner)
                         pnpCorners = contourCorners[closestCorner]
                      else:
                         pnpCorners = contourCorners[0]
                 
-                     print("pnpCorners:", pnpCorners[0][0])
+                     #print("pnpCorners:", pnpCorners[0][0])
                      # pnpCorners[0] = tuple(cnt[cnt[:,:,0].argmin()][0])
                 
                     # unpack corners
@@ -434,18 +441,18 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                 
                      outer_corners = np.array([corner[0], corner[1], corner[2], corner[3]])
                     
-                     print("outer1: ", outer_corners)
+                     #print("outer1: ", outer_corners)
 
                      outer_corners = order_points(outer_corners)
-                     print("outer order: ", outer_corners)
+                     #print("outer order: ", outer_corners)
 
                     # outer_corners = np.array((pnpCorners[0][0],pnpCorners[0][1]), (pnpCorners[1][0],pnpCorners[1][1]), corner3, corner4)
                 
-                     print("outer_corners", outer_corners)
-                     print("real_world_cordinates", real_world_coordinates)
+                     #print("outer_corners", outer_corners)
+                     #print("real_world_cordinates", real_world_coordinates)
 
-                     print("Final_Center: ", final_center)
-                     print("Average_AREA: ", average_area)
+                     #print("Final_Center: ", final_center)
+                     #print("Average_AREA: ", average_area)
 
                      success, rvec, tvec = findTvecRvec(image, outer_corners, real_world_coordinates) 
                     
