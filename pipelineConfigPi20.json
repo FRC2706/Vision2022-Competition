@@ -1,5 +1,6 @@
 {
     "networkTableName": "MergeVisionPipelinePi20",
+    "Driver": false,
     "Tape": false,
     "Cargo": true,
     "Red": true,

@@ -200,6 +200,7 @@ with open(pipelineConfig) as json_file:
     data = json.load(json_file)
 
 MergeVisionPipeLineTableName = data["networkTableName"]
+DriverEnabled = data["Driver"]
 TapeEnabled = data["Tape"]
 CargoEnabled = data["Cargo"]
 RedEnabled = data["Red"]
@@ -207,6 +208,9 @@ BlueEnabled = data["Blue"]
 OutputStream = data["OutputStream"]
 ExposureTape = data["ExposureTarget"]
 ExposureBall = data["ExposureBall"]
+
+if DriverEnabled:
+    switch = 1
 
 if TapeEnabled:
     switch = 2
