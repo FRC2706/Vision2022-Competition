@@ -51,9 +51,9 @@ useWebCam = False
 webCamNumber = 1
 
 # ADJUST DESIRED TARGET BASED ON VIDEO OR FILES ABOVE !!!
-Driver = False
+Driver = True
 Tape = False
-Cargo = True
+Cargo = False
 Red = True 
 Blue = False
 
@@ -76,7 +76,7 @@ def load_images_from_folder(folder):
 def draw_circle(event,x,y,flags,param):
     if event == cv2.EVENT_LBUTTONDOWN:
         green = np.uint8([[[frame[y, x, 0], frame[y, x, 1], frame[y, x, 2]]]])
-        print(frame[y, x, 2], frame[y, x, 1], frame[y, x, 0], cv2.cvtColor(green,cv2.COLOR_BGR2HSV))  
+        #print(frame[y, x, 2], frame[y, x, 1], frame[y, x, 0], cv2.cvtColor(green,cv2.COLOR_BGR2HSV))  
 
 # choose video to process -> Outer Target Videos
 #videoname = './OuterTargetVideos/ThirdScale-01.mp4'
@@ -90,17 +90,17 @@ elif useWebCam: #test against live camera
 
 else:  # implies images are to be read
     # Cargo Images
-    images, imagename = load_images_from_folder("./HighCamAngleDown")
+    #images, imagename = load_images_from_folder("./HighCamAngleDown")
    
 
     # Outer Target Images
-    #images, imagename = load_images_from_folder("./HubImgFRC")
+    images, imagename = load_images_from_folder("./HubImgFRC")
     #images, imagename = load_images_from_folder("./HubImgSketchup")
 
 
     # finds height/width of camera frame (eg. 640 width, 480 height)
     image_height, image_width = images[0].shape[:2]
-    print(image_height, image_width)
+    #print(image_height, image_width)
 
 team = 2706
 server = True
@@ -192,8 +192,9 @@ while stayInLoop or cap.isOpened():
     # because we are timing in this file, have to add the fps to image processed 
     #cv2.putText(processed, 'elapsed time: {:.2f}'.format(fps.elapsed()), (40, 40), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
     #cv2.putText(processed, 'FPS: {:.7f}'.format(3.14159265), (40, 80), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
-    cv2.putText(processed, "frame time: " + str(int(processedMilli)) + " ms", (40, 40), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
-    cv2.putText(processed, 'Instant FPS: {:.2f}'.format(1000/(processedMilli)), (40, 80), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
+    if not Driver:
+        cv2.putText(processed, "frame time: " + str(int(processedMilli)) + " ms", (40, 40), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
+        cv2.putText(processed, 'Instant FPS: {:.2f}'.format(1000/(processedMilli)), (40, 80), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
     
     if (showAverageFPS): 
         cv2.putText(processed, 'Grouped FPS: {:.2f}'.format(1000/(displayFPS)), (40, 120), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
