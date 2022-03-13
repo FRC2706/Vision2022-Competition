@@ -37,7 +37,7 @@ def DriverOverlay(frame, final_center,YawToTarget, distance):
            colour = yellow
         if ((YawToTarget < -6 or YawToTarget > 6)):  
            colour = red
-        cv2.line(image, (final_center, screenHeight), (final_center, 0), colour, 2)
+        cv2.line(image, (round(final_center), screenHeight), (round(final_center), 0), colour, 2)
 
     if YawToTarget != -99:        
         cv2.putText(image, "TargetYaw: " + str(YawToTarget), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
