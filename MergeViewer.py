@@ -33,6 +33,8 @@ from VisionConstants import *
 from VisionUtilities import *
 from VisionMasking import *
 from DistanceFunctions import *
+from DriverOverlay import *
+
 print()
 print("--- Merge Viewer Starting ---")
 print()
@@ -154,20 +156,25 @@ while stayInLoop or cap.isOpened():
         filename = imagename[currentImg]
 
     if Driver:
-        processed = frame
+        copyframe = frame
+        threshold = threshold_video(lower_green, upper_green, frame)
+        processed,  final_center, YawToTarget, distance = findTargets(copyframe, threshold, MergeVisionPipeLineTableName)
+        processed = DriverOverlay(copyframe, final_center ,YawToTarget, distance)
     else:
         if Tape:
             threshold = threshold_video(lower_green, upper_green, frame)
             processed = findTargets(frame, threshold, MergeVisionPipeLineTableName)
-        else:
-            if Cargo:
-                if Red:
-                    boxBlur = blurImg(frame, red_blur)
-                    threshold = threshold_video(lower_red, upper_red, boxBlur)
-                elif Blue:
-                    boxBlur = blurImg(frame, blue_blur)
-                    threshold = threshold_video(lower_blue, upper_blue, boxBlur)
-                processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+       
+        if Cargo:
+            if Red:
+                boxBlur = blurImg(frame, red_blur)
+                threshold = threshold_video(lower_red, upper_red, boxBlur)
+            elif Blue:
+                boxBlur = blurImg(frame, blue_blur)
+                threshold = threshold_video(lower_blue, upper_blue, boxBlur)
+            processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+
+           
 
     # end of cycle so update counter
     #fps.update()

@@ -32,6 +32,7 @@ from VisionConstants import *
 from VisionUtilities import *
 from VisionMasking import *
 from DistanceFunctions import *
+from DriverOverlay import *
 
 print("Using python version {0}".format(sys.version))
 print()
@@ -486,24 +487,37 @@ if __name__ == "__main__":
                 rpm = networkTableVisionPipeline.getNumber("RPM", 0)
                 cv2.putText(processed, "RPM: " + str(round(rpm,2)), (20, 340), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
 
-        else:
-            if (networkTableVisionPipeline.getBoolean("Cargo", True)):
-                # Checks if you just want to look for Cargo
-                switch = 3
- #               boxBlur = blurImg(frame, yellow_blur)
- #               threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
-                if (networkTableVisionPipeline.getBoolean("Red", True)):
-                    boxBlur = blurImg(frame, red_blur)
-                    threshold = threshold_video(lower_red, upper_red, boxBlur)
-                    processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
-                elif (networkTableVisionPipeline.getBoolean("Blue", True)):
-                    boxBlur = blurImg(frame, blue_blur)
-                    threshold = threshold_video(lower_blue, upper_blue, boxBlur)
- 
-                if (networkTableVisionPipeline.getBoolean("SendMask", False)):
-                    processed = threshold
-                else:   
-                    processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+        if (networkTableVisionPipeline.getBoolean("Driver", True)):
+            switch = 1
+            
+            final_center = networkTableVisionPipeline.getNumber("FinalCenter", -99)
+            yaw = networkTableVisionPipeline.getNumber("YawToTarget", -99)
+            distance = networkTableVisionPipeline.getNumber("DistanceToTarget", -1)
+            
+            processed = DriverOverlay(frame, final_center, yaw, distance)
+           
+
+      
+        if (networkTableVisionPipeline.getBoolean("Cargo", True)):
+            # Checks if you just want to look for Cargo
+            switch = 3
+#               boxBlur = blurImg(frame, yellow_blur)
+#               threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
+            if (networkTableVisionPipeline.getBoolean("Red", True)):
+                boxBlur = blurImg(frame, red_blur)
+                threshold = threshold_video(lower_red, upper_red, boxBlur)
+                processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+            elif (networkTableVisionPipeline.getBoolean("Blue", True)):
+                boxBlur = blurImg(frame, blue_blur)
+                threshold = threshold_video(lower_blue, upper_blue, boxBlur)
+
+            if (networkTableVisionPipeline.getBoolean("SendMask", False)):
+                processed = threshold
+            else:   
+                processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+
+           
+                          
 
         # Puts timestamp of camera on network tables
         networkTableVisionPipeline.putNumber("VideoTimestamp", timestamp)
