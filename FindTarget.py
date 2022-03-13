@@ -81,10 +81,14 @@ def findTargets(frame, mask, MergeVisionPipeLineTableName):
     # Copies frame and stores it in image
     image = frame.copy()
     # Processes the contours, takes in (contours, output_image, (centerOfImage)
+    final_center = -99
+    YawToTarget = -99
+    distance = -1
     if len(contours) != 0:
-        image = findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName)
+        image, final_center, YawToTarget, distance = findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName)
     # Shows the contours overlayed on the original video
-    return image
+    return image, final_center, YawToTarget, distance
+
 
 
 
@@ -239,6 +243,10 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
     # a value based on screenWidth scales properly if the resolution ever changes.)
     minContourArea = 0.6 * screenWidth;
 
+    final_center = -99
+    YawToTarget = -99
+    distance = -1
+
     if len(contours) >= 1:
         # Sort contours by area size (biggest to smallest)
         cntsSorted = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)[:10]
@@ -275,7 +283,7 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                 if (cntArea > 1000): continue
  
                 #Filter based on too small contour
-                if (cntArea < 100): continue
+                if (cntArea < 60): continue
 
                 # Filter based on percent fill
                 if (percentfill < 0.48): continue 
@@ -515,24 +523,26 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                 if success:
                     publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", round(distance/12,2))
                     publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", round(RobotYawToTarget,2))
+                    publishNumber(MergeVisionPipeLineTableName, "FinalCenter", round(final_center,2))
                        
             else:
                 #If Nothing is found, publish -99 and -1 to Network table
                 publishNumber(MergeVisionPipeLineTableName, "YawToTarget", -99)
                 publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1)  
                 publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99)
+                publishNumber(MergeVisionPipeLineTableName, "finalCenter", -99)
                 publishString("blingTable","command","clear")
-
 
     else:
         #If Nothing is found, publish -99 and -1 to Network table
         publishNumber(MergeVisionPipeLineTableName, "YawToTarget", -99)
         publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1) 
         publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99) 
+        publishNumber(MergeVisionPipeLineTableName, "finalCenter", -99)
         publishString("blingTable","command","clear")    
              
     #     # pushes vision target angle to network table
-    return image
+    return image, final_center, YawToTarget, distance
 
 
 # Checks if the target contours are worthy 

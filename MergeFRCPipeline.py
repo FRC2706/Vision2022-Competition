@@ -32,6 +32,7 @@ from VisionConstants import *
 from VisionUtilities import *
 from VisionMasking import *
 from DistanceFunctions import *
+from DriverOverlay import *
 
 print("Using python version {0}".format(sys.version))
 print()
@@ -131,6 +132,7 @@ class WebcamVideoStream:
                     self.webcam.setExposureManual(60)
                     self.webcam.setExposureManual(ExposureTape)
                     self.switchTape = True
+                    self.switchBall = False
                     #self.prevValue = self.autoExpose
 
             elif switch == 3: #Cargo Mode - set exposure to 39
@@ -140,6 +142,7 @@ class WebcamVideoStream:
                     self.webcam.setExposureManual(100)
                     self.webcam.setExposureManual(ExposureBall)
                     self.switchBall = True
+                    self.switchTape = False
                     #self.prevValue = self.autoExpose
 
             # gets the image and timestamp from cameraserver
@@ -212,10 +215,10 @@ ExposureBall = data["ExposureBall"]
 if DriverEnabled:
     switch = 1
 
-if TapeEnabled:
+elif TapeEnabled:
     switch = 2
 
-if CargoEnabled:
+elif CargoEnabled:
     switch = 3
 
 class CameraConfig: pass
@@ -384,7 +387,7 @@ if __name__ == "__main__":
     networkTableMatchVariables.putBoolean("ShutDown",False)
 
     #PipeLine Table Values, Unique for Each PipeLine
-    networkTableVisionPipeline.putBoolean("Driver", False)
+    networkTableVisionPipeline.putBoolean("Driver", DriverEnabled)
     networkTableVisionPipeline.putBoolean("Tape", TapeEnabled)
     networkTableVisionPipeline.putBoolean("Cargo", CargoEnabled)
     networkTableVisionPipeline.putBoolean("Red", RedEnabled)
@@ -484,26 +487,40 @@ if __name__ == "__main__":
 
                 #Read RPM From Network Table
                 rpm = networkTableVisionPipeline.getNumber("RPM", 0)
-                cv2.putText(processed, "RPM: " + str(round(rpm,2)), (20, 340), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+                if rpm != 0:
+                    cv2.putText(processed, "RPM: " + str(round(rpm,2)), (20, 340), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
 
-        else:
-            if (networkTableVisionPipeline.getBoolean("Cargo", True)):
-                # Checks if you just want to look for Cargo
-                switch = 3
- #               boxBlur = blurImg(frame, yellow_blur)
- #               threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
-                if (networkTableVisionPipeline.getBoolean("Red", True)):
-                    boxBlur = blurImg(frame, red_blur)
-                    threshold = threshold_video(lower_red, upper_red, boxBlur)
-                    processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
-                elif (networkTableVisionPipeline.getBoolean("Blue", True)):
-                    boxBlur = blurImg(frame, blue_blur)
-                    threshold = threshold_video(lower_blue, upper_blue, boxBlur)
- 
-                if (networkTableVisionPipeline.getBoolean("SendMask", False)):
-                    processed = threshold
-                else:   
-                    processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+        if (networkTableVisionPipeline.getBoolean("Driver", True)):
+            switch = 1
+            
+            final_center = networkTableVisionPipeline.getNumber("FinalCenter", -99)
+            yaw = networkTableVisionPipeline.getNumber("YawToTarget", -99)
+            distance = networkTableVisionPipeline.getNumber("DistanceToTarget", -1)
+            
+            processed = DriverOverlay(frame, final_center, yaw, distance)
+           
+
+      
+        if (networkTableVisionPipeline.getBoolean("Cargo", True)):
+            # Checks if you just want to look for Cargo
+            switch = 3
+#               boxBlur = blurImg(frame, yellow_blur)
+#               threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
+            if (networkTableVisionPipeline.getBoolean("Red", True)):
+                boxBlur = blurImg(frame, red_blur)
+                threshold = threshold_video(lower_red, upper_red, boxBlur)
+                processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+            elif (networkTableVisionPipeline.getBoolean("Blue", True)):
+                boxBlur = blurImg(frame, blue_blur)
+                threshold = threshold_video(lower_blue, upper_blue, boxBlur)
+
+            if (networkTableVisionPipeline.getBoolean("SendMask", False)):
+                processed = threshold
+            else:   
+                processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+
+           
+                          
 
         # Puts timestamp of camera on network tables
         networkTableVisionPipeline.putNumber("VideoTimestamp", timestamp)
@@ -540,8 +557,12 @@ if __name__ == "__main__":
             start = milliSince1970()
 
         # because we are timing in this file, have to add the fps to image processed 
-        cv2.putText(processed, 'Grouped FPS: {:.2f}'.format(1000/displayFPS), (40, 40), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
-        cv2.putText(processed, 'Average FPS: {:.2f}'.format(averageFPS), (40, 80), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
+        if (displayFPS != 0):
+            #print(displayFPS)
+            cv2.putText(processed, 'Grouped FPS: {:.2f}'.format(1000/displayFPS), (40, 40), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
+
+        if (averageFPS != 0):    
+            cv2.putText(processed, 'Average FPS: {:.2f}'.format(averageFPS), (40, 80), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
 
         # networkTable.putBoolean("Driver", True)
         processed = cv2.resize(processed,(640,480),fx=0,fy=0,interpolation=cv2.INTER_CUBIC)
