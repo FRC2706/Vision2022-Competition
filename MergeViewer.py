@@ -53,8 +53,8 @@ useWebCam = False
 webCamNumber = 1
 
 # ADJUST DESIRED TARGET BASED ON VIDEO OR FILES ABOVE !!!
-Driver = True
-Tape = False
+Driver = False
+Tape = True
 Cargo = False
 Red = True 
 Blue = False
@@ -138,6 +138,9 @@ begin = milliSince1970()
 start = begin
 prev_update = start
 
+# past_distances test
+past_distances = []
+
 while stayInLoop or cap.isOpened():
 
     if useVideo and not useWebCam:
@@ -156,14 +159,14 @@ while stayInLoop or cap.isOpened():
         filename = imagename[currentImg]
 
     if Driver:
-        copyframe = frame
-        threshold = threshold_video(lower_green, upper_green, frame)
-        processed,  final_center, YawToTarget, distance = findTargets(copyframe, threshold, MergeVisionPipeLineTableName)
-        processed = DriverOverlay(copyframe, final_center ,YawToTarget, distance)
+      copyframe = frame
+      threshold = threshold_video(lower_green, upper_green, frame)
+      processed, final_center, YawToTarget, distance = findTargets(copyframe, threshold, MergeVisionPipeLineTableName, past_distances)
+      processed = DriverOverlay(copyframe, final_center ,YawToTarget, distance)
     else:
         if Tape:
             threshold = threshold_video(lower_green, upper_green, frame)
-            processed = findTargets(frame, threshold, MergeVisionPipeLineTableName)
+            processed, final_center, YawToTarget, distance = findTargets(frame, threshold, MergeVisionPipeLineTableName, past_distances)
        
         if Cargo:
             if Red:

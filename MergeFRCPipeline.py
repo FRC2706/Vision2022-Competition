@@ -423,6 +423,9 @@ if __name__ == "__main__":
     #global blingColour
     blingColour = 0
 
+    #initialize the past distances
+    past_distances = []
+
     # loop forever
     while True:
 
@@ -483,7 +486,7 @@ if __name__ == "__main__":
             if (networkTableVisionPipeline.getBoolean("SendMask", False)):
                 processed = threshold
             else:    
-                processed = findTargets(frame, threshold, MergeVisionPipeLineTableName)
+                processed, final_center, YawToTarget, distance = findTargets(frame, threshold, MergeVisionPipeLineTableName, past_distances)
 
                 #Read RPM From Network Table
                 rpm = networkTableVisionPipeline.getNumber("RPM", 0)

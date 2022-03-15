@@ -32,7 +32,7 @@ real_world_coordinates = np.array([
 MAXIMUM_TARGET_AREA = 4400
 
 # Finds the tape targets from the masked image and displays them on original stream + network tales
-def findTargets(frame, mask, MergeVisionPipeLineTableName):
+def findTargets(frame, mask, MergeVisionPipeLineTableName, past_distances):
 
     # Taking a matrix of size 5 as the kernel 
     #kernel = np.ones((3,3), np.uint8) 
@@ -85,7 +85,9 @@ def findTargets(frame, mask, MergeVisionPipeLineTableName):
     YawToTarget = -99
     distance = -1
     if len(contours) != 0:
-        image, final_center, YawToTarget, distance = findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName)
+        image, final_center, YawToTarget, distance = findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName, past_distances)
+    else:
+        past_distances.clear()
     # Shows the contours overlayed on the original video
     return image, final_center, YawToTarget, distance
 
@@ -205,19 +207,33 @@ def displaycorners(image, outer_corners):
 
 # Function that takes a list of 3 corners of a contour and gives you the closest to the center
 
-def minContour(number, contourCorners):
-    xDiff = []
-    minVar = 10000
-    closestCorner = 0
+def getAverageArray(array):
+    values = 0
+    final_value = 0
+    
+    if len(array) > 0:
+        for i in range(len(array)):
+            values += array[i]
+        final_value = values/len(array)
+        #except ValueError:
+        #print("Something is wrong with one of these values:", array)
+    
+    return final_value 
 
-    for i in range(len(contourCorners)):
+# gets minimum contour from a two dimensional array to find closest corner to centerpoint out of a set of arrays
+def minContour(center, contourCorners):
+    xDiff = [] # list that stores the differences between number (final_center) and contourCorners
+    minVar = 10000 # will change to the greatest value that shows up
+    closestCorner = 0 # set closestCorner to the value of i (so 1-4 in most cases)
+
+    for i in range(len(contourCorners)): # two for loops as contourCorners is a 2D array
         for j in contourCorners[i]:
             #xDiff.insert([center-(i[0][0]), center-(i[1][0]), center-(i[1][0]), center-(i[1][1])])
-            xDiff.append(abs(number-(j[0][0])))
+            xDiff.append(abs(center-(j[0][0]))) # append the differences between number (final_center) and j[0][0] and add to xDiff
             var = min(xDiff)
-            if var < minVar :
-                minVar = var 
-                closestCorner = i 
+            if var < minVar : # if var the value (min(xDiff) which is an array with 3+ elements) is greater than current minVar, then set minVar to var, 
+                minVar = var # set minVar to var, so minVar becomes the highest value
+                closestCorner = i # closest corner will be the number of the element of contourCorners where it is closest to center
             print("i[0][0] data: ", j[0][0])
 
     #print("xDiff: ", xDiff)
@@ -233,7 +249,7 @@ def minContour(number, contourCorners):
 # centerX is center x coordinate of image
 # centerY is center y coordinate of image
 
-def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName):
+def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName, past_distances):
     global blingColour
     #global warped
     screenHeight, screenWidth, channels = image.shape
@@ -470,13 +486,22 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                 # If success then print values to screen                               
                 if success:
                     distance, angle1, angle2 = compute_output_values(rvec, tvec)
+                    
+                    past_distances.append(distance)
+                    if len(past_distances) > 5:
+                        past_distances.pop(0)
+                    
+                    print("past distances", past_distances)
+                    average_distance = getAverageArray(past_distances)
                     #calculate RobotYawToTarget based on Robot offset (subtract 180 degrees)
                     RobotYawToTarget = 180-abs(angle2)
           
-                    cv2.putText(image, "Distance: " + str(round((distance/12),2)), (20, 600), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+                    cv2.putText(image, "Distance: " + str(round((distance/12),2)), (20, 500), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+                    cv2.putText(image, "Average Distance: " + str(round((average_distance/12),2)), (20, 600), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
                     cv2.putText(image, "RobotYawToTarget: " + str(round(RobotYawToTarget,2)), (40, 420), cv2.FONT_HERSHEY_COMPLEX, .6,white)
                     cv2.putText(image, "SolvePnPTargetYawToCenter: " + str(round(angle1,2)), (40, 460), cv2.FONT_HERSHEY_COMPLEX, .6,white)
                 
+
                 #start with a non-existing colour
                 
                 # color 0 is red
@@ -486,32 +511,32 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                     colour = green
                     #Use Bling
                     #Set Green colour
-                    if (blingColour != 2):
-                        publishNumber("blingTable", "green",255)
-                        publishNumber("blingTable", "blue", 0)
-                        publishNumber("blingTable", "red", 0)
-                        publishNumber("blingTable", "wait_ms",0)
-                        publishString("blingTable","command","solid")
-                        blingColour = 2
+                   # if (blingColour != 2):
+                   #     publishNumber("blingTable", "green",255)
+                   #     publishNumber("blingTable", "blue", 0)
+                   #     publishNumber("blingTable", "red", 0)
+                   #     publishNumber("blingTable", "wait_ms",0)
+                   #     publishString("blingTable","command","solid")
+                   #     blingColour = 2
                 if ((YawToTarget >= -5 and YawToTarget < -2) or (YawToTarget > 2 and YawToTarget <= 5)):  
                     colour = yellow
                     
-                    if (blingColour != 1):
-                        publishNumber("blingTable", "red",255)
-                        publishNumber("blingTable", "green",255)
-                        publishNumber("blingTable", "blue",0)
-                        publishNumber("blingTable", "wait_ms",0)
-                        publishString("blingTable","command","solid")
-                        blingColour = 1
+                   # if (blingColour != 1):
+                   #     publishNumber("blingTable", "red",255)
+                   #     publishNumber("blingTable", "green",255)
+                   #     publishNumber("blingTable", "blue",0)
+                   #     publishNumber("blingTable", "wait_ms",0)
+                   #     publishString("blingTable","command","solid")
+                   #     blingColour = 1
                 if ((YawToTarget < -5 or YawToTarget > 5)):  
                     colour = red
-                    if (blingColour != 0):
-                        publishNumber("blingTable", "red",255)
-                        publishNumber("blingTable", "blue",0)
-                        publishNumber("blingTable", "green",0)
-                        publishNumber("blingTable", "wait_ms",0)
-                        publishString("blingTable","command","solid")
-                        blingColour = 0
+                   # if (blingColour != 0):
+                   #     publishNumber("blingTable", "red",255)
+                   #     publishNumber("blingTable", "blue",0)
+                   #     publishNumber("blingTable", "green",0)
+                   #     publishNumber("blingTable", "wait_ms",0)
+                   #     publishString("blingTable","command","solid")
+                   #     blingColour = 0
 
                 cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), white, 2)
                 cv2.line(image, (final_center, screenHeight), (final_center, 0), colour, 2)
@@ -522,6 +547,7 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
 
                 if success:
                     publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", round(distance/12,2))
+                    publishNumber(MergeVisionPipeLineTableName, "AverageDistance", round(average_distance/12,2))
                     publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", round(RobotYawToTarget,2))
                     publishNumber(MergeVisionPipeLineTableName, "FinalCenter", round(final_center,2))
                        
@@ -529,18 +555,23 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                 #If Nothing is found, publish -99 and -1 to Network table
                 publishNumber(MergeVisionPipeLineTableName, "YawToTarget", -99)
                 publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1)  
+                publishNumber(MergeVisionPipeLineTableName, "AverageDistance", -1)  
                 publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99)
                 publishNumber(MergeVisionPipeLineTableName, "finalCenter", -99)
                 publishString("blingTable","command","clear")
+                past_distances.clear()
+                print("past_distances are gone")
 
     else:
         #If Nothing is found, publish -99 and -1 to Network table
         publishNumber(MergeVisionPipeLineTableName, "YawToTarget", -99)
         publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1) 
+        publishNumber(MergeVisionPipeLineTableName, "AverageDistance", -1)  
         publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99) 
         publishNumber(MergeVisionPipeLineTableName, "finalCenter", -99)
-        publishString("blingTable","command","clear")    
-             
+        publishString("blingTable","command","clear") 
+        past_distances.clear()
+        print("past_distances are gone")
     #     # pushes vision target angle to network table
     return image, final_center, YawToTarget, distance
 
