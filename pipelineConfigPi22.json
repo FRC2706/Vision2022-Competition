@@ -1,5 +1,6 @@
 {
     "networkTableName": "MergeVisionPipelinePi22",
+    "networkTableReadName": "MergeVisionPipelinePi21",
     "Driver": true,
     "Tape": false,
     "Cargo": false,

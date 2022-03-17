@@ -203,6 +203,7 @@ with open(pipelineConfig) as json_file:
     data = json.load(json_file)
 
 MergeVisionPipeLineTableName = data["networkTableName"]
+MergeVisionReadPipeLineTableName = data["networkTableReadName"]
 DriverEnabled = data["Driver"]
 TapeEnabled = data["Tape"]
 CargoEnabled = data["Cargo"]
@@ -351,6 +352,9 @@ if __name__ == "__main__":
     #Used to control MergeVisionPipeLineSettings
     networkTableVisionPipeline = NetworkTables.getTable(MergeVisionPipeLineTableName)
 
+    #NetworkTable to read from if needed
+    networkTableVisionReadPipeline = NetworkTables.getTable(MergeVisionReadPipeLineTableName)
+
 
     if server:
         #print("Setting up NetworkTables server")
@@ -496,9 +500,9 @@ if __name__ == "__main__":
         if (networkTableVisionPipeline.getBoolean("Driver", True)):
             switch = 1
             
-            final_center = networkTableVisionPipeline.getNumber("FinalCenter", -99)
-            yaw = networkTableVisionPipeline.getNumber("YawToTarget", -99)
-            distance = networkTableVisionPipeline.getNumber("DistanceToTarget", -1)
+            final_center = networkTableVisionReadPipeline.getNumber("FinalCenter", -99)
+            yaw = networkTableVisionReadPipeline.getNumber("YawToTarget", -99)
+            distance = networkTableVisionReadPipeline.getNumber("DistanceToTarget", -1)
             
             processed = DriverOverlay(frame, final_center, yaw, distance)
            
