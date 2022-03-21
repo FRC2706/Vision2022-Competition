@@ -53,9 +53,9 @@ useWebCam = False
 webCamNumber = 1
 
 # ADJUST DESIRED TARGET BASED ON VIDEO OR FILES ABOVE !!!
-Driver = True
+Driver = False
 Tape = False
-Cargo = False
+Cargo = True
 Red = True 
 Blue = False
 CameraFOV = 68.5
@@ -94,11 +94,11 @@ elif useWebCam: #test against live camera
 
 else:  # implies images are to be read
     # Cargo Images
-    #images, imagename = load_images_from_folder("./HighCamAngleDown")
+    images, imagename = load_images_from_folder("./HighCamAngleDown")
    
 
     # Outer Target Images
-    images, imagename = load_images_from_folder("./HubImgFRC")
+    # images, imagename = load_images_from_folder("./HubImgFRC")
     #images, imagename = load_images_from_folder("./HubImgSketchup")
 
 
@@ -178,7 +178,7 @@ while stayInLoop or cap.isOpened():
             elif Blue:
                 boxBlur = blurImg(frame, blue_blur)
                 threshold = threshold_video(lower_blue, upper_blue, boxBlur)
-            processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+            processed = findCargo(frame, CameraFOV, threshold, MergeVisionPipeLineTableName)
 
            
 

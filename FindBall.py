@@ -22,7 +22,7 @@ except ImportError:
 # MergeVisionPipeLineTableName is the Network Table destination for yaw and distance
 
 # Finds the balls from the masked image and displays them on original stream + network tables
-def findCargo(frame, mask, MergeVisionPipeLineTableName):
+def findCargo(frame, cameraFOV, mask, MergeVisionPipeLineTableName):
     # Finds contours
     if is_cv3():
         _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
@@ -39,11 +39,11 @@ def findCargo(frame, mask, MergeVisionPipeLineTableName):
     image = frame.copy()
     # Processes the contours, takes in (contours, output_image, (centerOfImage)
     if len(contours) != 0:
-        image = findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName)
+        image = findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName, cameraFOV)
     # Shows the contours overlayed on the original video
     return image
 
-def findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName):
+def findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName,cameraFOV):
     screenHeight, screenWidth, channels = image.shape
     # Seen vision targets (correct angle, adjacent to each other)
     #cargo = []
@@ -153,6 +153,7 @@ def findBall(contours, image, centerX, centerY, MergeVisionPipeLineTableName):
                 xCoord = bottommost[0]   
 
             # calculate yaw and store in finalTarget0
+            H_FOCAL_LENGTH, V_FOCAL_LENGTH = calculateFocalLengthsFromInput(cameraFOV,screenWidth, screenHeight)
             finalTarget.append(calculateYaw(xCoord, centerX, H_FOCAL_LENGTH))
             # calculate dist and store in finalTarget1
             finalTarget.append(calculateDistWPILib(closestCargo[4],CARGO_BALL_HEIGHT,KNOWN_CARGO_PIXEL_HEIGHT,KNOWN_CARGO_DISTANCE ))

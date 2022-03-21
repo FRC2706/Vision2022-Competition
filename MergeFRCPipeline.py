@@ -521,7 +521,7 @@ if __name__ == "__main__":
             if (networkTableVisionPipeline.getBoolean("Red", True)):
                 boxBlur = blurImg(frame, red_blur)
                 threshold = threshold_video(lower_red, upper_red, boxBlur)
-                processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+                processed = findCargo(frame, CameraFOV, threshold, MergeVisionPipeLineTableName)
             elif (networkTableVisionPipeline.getBoolean("Blue", True)):
                 boxBlur = blurImg(frame, blue_blur)
                 threshold = threshold_video(lower_blue, upper_blue, boxBlur)
@@ -529,7 +529,7 @@ if __name__ == "__main__":
             if (networkTableVisionPipeline.getBoolean("SendMask", False)):
                 processed = threshold
             else:   
-                processed = findCargo(frame, threshold, MergeVisionPipeLineTableName)
+                processed = findCargo(frame, CameraFOV, threshold, MergeVisionPipeLineTableName)
 
            
                           
