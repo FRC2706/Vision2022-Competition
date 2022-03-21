@@ -212,6 +212,9 @@ BlueEnabled = data["Blue"]
 OutputStream = data["OutputStream"]
 ExposureTape = data["ExposureTarget"]
 ExposureBall = data["ExposureBall"]
+CameraFOV = data["CameraFOV"]
+OutputStreamWidth = data["OutputStreamWidth"]
+OutputStreamHeight = data["OutputStreamHeight"]
 
 if DriverEnabled:
     switch = 1
@@ -490,7 +493,7 @@ if __name__ == "__main__":
             if (networkTableVisionPipeline.getBoolean("SendMask", False)):
                 processed = threshold
             else:    
-                processed, final_center, YawToTarget, distance = findTargets(frame, threshold, MergeVisionPipeLineTableName, past_distances)
+                processed, final_center, YawToTarget, distance = findTargets(frame, CameraFOV, threshold, MergeVisionPipeLineTableName, past_distances)
 
                 #Read RPM From Network Table
                 rpm = networkTableVisionPipeline.getNumber("RPM", 0)
@@ -504,7 +507,7 @@ if __name__ == "__main__":
             yaw = networkTableVisionReadPipeline.getNumber("YawToTarget", -99)
             distance = networkTableVisionReadPipeline.getNumber("DistanceToTarget", -1)
             
-            processed = DriverOverlay(frame, final_center, yaw, distance)
+            processed = DriverOverlay(frame, CameraFOV, final_center, yaw, distance)
            
 
       
@@ -566,14 +569,15 @@ if __name__ == "__main__":
         # because we are timing in this file, have to add the fps to image processed 
         if (displayFPS != 0):
             #print(displayFPS)
-            cv2.putText(processed, 'Grouped FPS: {:.2f}'.format(1000/displayFPS), (40, 40), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
+            cv2.putText(processed, 'Grouped FPS: {:.2f}'.format(1000/displayFPS), (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
 
         if (averageFPS != 0):    
-            cv2.putText(processed, 'Average FPS: {:.2f}'.format(averageFPS), (40, 80), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
+            cv2.putText(processed, 'Average FPS: {:.2f}'.format(averageFPS), (20, 50), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
 
-        # networkTable.putBoolean("Driver", True)
-        processed = cv2.resize(processed,(640,480),fx=0,fy=0,interpolation=cv2.INTER_CUBIC)
-        streamViewer.frame = processed
+        # Resize stream based on the type of stream
+        if (OutputStreamWidth != 0):
+            processed = cv2.resize(processed,(OutputStreamWidth,OutputStreamHeight),fx=0,fy=0,interpolation=cv2.INTER_CUBIC)
+            streamViewer.frame = processed
 
         # Flushes camera values to reduce latency
         ntinst.flush()

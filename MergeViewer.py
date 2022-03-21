@@ -53,11 +53,12 @@ useWebCam = False
 webCamNumber = 1
 
 # ADJUST DESIRED TARGET BASED ON VIDEO OR FILES ABOVE !!!
-Driver = False
-Tape = True
+Driver = True
+Tape = False
 Cargo = False
 Red = True 
 Blue = False
+CameraFOV = 68.5
 
 # counts frames for writing images
 frameStop = 0
@@ -161,12 +162,13 @@ while stayInLoop or cap.isOpened():
     if Driver:
       copyframe = frame
       threshold = threshold_video(lower_green, upper_green, frame)
-      processed, final_center, YawToTarget, distance = findTargets(copyframe, threshold, MergeVisionPipeLineTableName, past_distances)
-      processed = DriverOverlay(copyframe, final_center ,YawToTarget, distance)
+      processed, final_center, YawToTarget, distance = findTargets(copyframe, CameraFOV, threshold, MergeVisionPipeLineTableName, past_distances)
+      #Use driver Overlay with same Microsoft camera with 68.5 FOV
+      processed = DriverOverlay(copyframe, CameraFOV, final_center ,YawToTarget, distance)
     else:
         if Tape:
             threshold = threshold_video(lower_green, upper_green, frame)
-            processed, final_center, YawToTarget, distance = findTargets(frame, threshold, MergeVisionPipeLineTableName, past_distances)
+            processed, final_center, YawToTarget, distance = findTargets(frame, CameraFOV, threshold, MergeVisionPipeLineTableName, past_distances)
        
         if Cargo:
             if Red:
@@ -207,10 +209,10 @@ while stayInLoop or cap.isOpened():
         cv2.putText(processed, 'Instant FPS: {:.2f}'.format(1000/(processedMilli)), (40, 80), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
     
     if (showAverageFPS): 
-        cv2.putText(processed, 'Grouped FPS: {:.2f}'.format(1000/(displayFPS)), (40, 120), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
-        cv2.putText(processed, 'Average FPS: {:.2f}'.format(averageFPS), (40, 160), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
+        cv2.putText(processed, 'Grouped FPS: {:.2f}'.format(1000/(displayFPS)), (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
+        cv2.putText(processed, 'Average FPS: {:.2f}'.format(averageFPS), (20, 50), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
     else:
-        cv2.putText(processed, 'Grouped FPS: {:.2f}'.format(1000/(displayFPS)), (40, 120), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
+        cv2.putText(processed, 'Grouped FPS: {:.2f}'.format(1000/(displayFPS)), (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
 
     cv2.imshow("raw", frame)
     cv2.setMouseCallback('raw', draw_circle)

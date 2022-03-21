@@ -32,7 +32,7 @@ real_world_coordinates = np.array([
 MAXIMUM_TARGET_AREA = 4400
 
 # Finds the tape targets from the masked image and displays them on original stream + network tales
-def findTargets(frame, mask, MergeVisionPipeLineTableName, past_distances):
+def findTargets(frame, cameraFOV, mask, MergeVisionPipeLineTableName, past_distances):
 
     # Taking a matrix of size 5 as the kernel 
     #kernel = np.ones((3,3), np.uint8) 
@@ -85,7 +85,7 @@ def findTargets(frame, mask, MergeVisionPipeLineTableName, past_distances):
     YawToTarget = -99
     distance = -1
     if len(contours) != 0:
-        image, final_center, YawToTarget, distance = findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName, past_distances)
+        image, final_center, YawToTarget, distance = findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName, past_distances, cameraFOV)
     else:
         past_distances.clear()
     # Shows the contours overlayed on the original video
@@ -120,7 +120,7 @@ def order_points(pts):
 
  #3D Rotation estimation
  
-def findTvecRvec(image, outer_corners, real_world_coordinates):
+def findTvecRvec(image, outer_corners, real_world_coordinates, H_FOCAL_LENGTH, V_FOCAL_LENGTH):
     # Read Image
     size = image.shape
  
@@ -137,7 +137,7 @@ def findTvecRvec(image, outer_corners, real_world_coordinates):
     dist_coeffs = np.array([[0.16171335604097975, -0.9962921370737408, -4.145368586842373e-05, 
                              0.0015152030328047668, 1.230483016701437]])
 
-    print(camera_matrix)
+    #print(camera_matrix)
     # This is tested for a 640x480 resolution
     # Should be 
     #     Fx  0  Cx
@@ -249,7 +249,7 @@ def minContour(center, contourCorners):
 # centerX is center x coordinate of image
 # centerY is center y coordinate of image
 
-def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName, past_distances):
+def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName, past_distances, cameraFOV):
     global blingColour
     #global warped
     screenHeight, screenWidth, channels = image.shape
@@ -438,8 +438,14 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                 #print("contourCorners:", len(contourCorners))
                 #print("Average_AREA: ", average_area)
 
+                H_FOCAL_LENGTH, V_FOCAL_LENGTH = calculateFocalLengthsFromInput(cameraFOV, screenWidth, screenHeight)
 
                 YawToTarget = calculateYaw(final_center, centerX, H_FOCAL_LENGTH)
+
+                #testing for overlay
+                #fincen = getTargetCenterFromYaw(YawToTarget, centerX, H_FOCAL_LENGTH)
+                #print("fincenter", final_center)
+                #print("calcyAW: ", fincen)
 
                 success = False
 
@@ -478,10 +484,10 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                      #print("Final_Center: ", final_center)
                      #print("Average_AREA: ", average_area)
 
-                     success, rvec, tvec = findTvecRvec(image, outer_corners, real_world_coordinates) 
+                     success, rvec, tvec = findTvecRvec(image, outer_corners, real_world_coordinates,H_FOCAL_LENGTH,V_FOCAL_LENGTH) 
                     
                 cv2.putText(image, "TargetYaw: " + str(YawToTarget), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
-                cv2.putText(image, "Average Area: " + str(average_area), (20, 240), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+                #cv2.putText(image, "Average Area: " + str(average_area), (20, 240), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
 
                 # If success then print values to screen                               
                 if success:
@@ -496,11 +502,11 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                     #calculate RobotYawToTarget based on Robot offset (subtract 180 degrees)
                     RobotYawToTarget = 180-abs(angle2)
           
+                    cv2.putText(image, "RobotYawToTarget: " + str(round(RobotYawToTarget,2)), (20, 400), cv2.FONT_HERSHEY_COMPLEX, .6,white)
+                    cv2.putText(image, "SolvePnPTargetYawToCenter: " + str(round(angle1,2)), (20, 450), cv2.FONT_HERSHEY_COMPLEX, .6,white)
                     cv2.putText(image, "Distance: " + str(round((distance/12),2)), (20, 500), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
                     cv2.putText(image, "Average Distance: " + str(round((average_distance/12),2)), (20, 600), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
-                    cv2.putText(image, "RobotYawToTarget: " + str(round(RobotYawToTarget,2)), (40, 420), cv2.FONT_HERSHEY_COMPLEX, .6,white)
-                    cv2.putText(image, "SolvePnPTargetYawToCenter: " + str(round(angle1,2)), (40, 460), cv2.FONT_HERSHEY_COMPLEX, .6,white)
-                
+                   
 
                 #start with a non-existing colour
                 

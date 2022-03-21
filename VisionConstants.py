@@ -5,14 +5,29 @@ import numpy as np
 # Field of View (FOV) of the microsoft camera (68.5 is camera spec)
 # Lifecam 3000 from datasheet
 # Datasheet: https://dl2jx7zfbtwvr.cloudfront.net/specsheets/WEBC1010.pdf
-
 diagonalView = math.radians(68.5)
 
-#print("Diagonal View:" + str(diagonalView))
+# The ELP-USBFHD01M-L21 (Wide angle is 170 degrees)
+# Datasheet:  http://www.webcamerausb.com/elp-high-speed-120fps-pcb-usb20-webcam-board-2-mega-pixels-1080p-ov2710-cmos-camera-module-with-21mm-lens-elpusbfhd01ml21-p-78.html
+# diagonalView = math.radians(170)
 
-# 4:3 aspect ratio
-horizontalAspect = 4
-verticalAspect = 3
+# MAY CHANGE IN FUTURE YEARS! It is better to use dynamic calculations as specified in the function
+# below.   That will allow multiple cameras with different resolutions and FOV parameters to be used
+# from the same pipeline code.
+
+image_width = 1280 # 16  
+image_height = 720 # 9 
+
+#To calculate the aspect ratio, first find the greatest common divisor between the
+# #image height and image width of the camera
+resolution_gcd = math.gcd(image_width, image_height)
+
+#The horizontal aspect is simply the imagewidth divided by the gcd
+#for examle, a 640x480 should give a GCD of 160, and aspect ratio is 4:3
+horizontalAspect = (image_width/resolution_gcd)
+
+#The vertical Aspect ratio is the image height divided by the gcd
+verticalAspect = (image_height/resolution_gcd)
 
 # Reasons for using diagonal aspect is to calculate horizontal field of view.
 diagonalAspect = math.hypot(horizontalAspect, verticalAspect)
@@ -20,12 +35,43 @@ diagonalAspect = math.hypot(horizontalAspect, verticalAspect)
 horizontalView = math.atan(math.tan(diagonalView / 2) * (horizontalAspect / diagonalAspect)) * 2
 verticalView = math.atan(math.tan(diagonalView / 2) * (verticalAspect / diagonalAspect)) * 2
 
-# MAY CHANGE IN FUTURE YEARS! This is the aspect ratio used in 2022
-image_width = 1280 # 4  
-image_height = 720 # 3  
-
 H_FOCAL_LENGTH = image_width / (2 * math.tan((horizontalView / 2)))
 V_FOCAL_LENGTH = image_height / (2 * math.tan((verticalView / 2)))
+
+
+#calculate the Horizontal and Vertical Camera Focal Lengths for this camera and resolution
+#input cameraFOV is the manufacturer of the cameras advertised field of view.   For example, the
+#                microsoft lifecam has a Fielf of View (FOV) of 68.5 degrees
+#      image_width is the image width in pixels (Example 640)
+#      image_height is the image width in pixels (Example 480)
+#      Image width and image height are otherwise known as the resolution
+def calculateFocalLengthsFromInput(cameraFOV, image_width, image_height):
+    diagonalView = math.radians(cameraFOV)
+
+    #To calculate the aspect ratio, first find the greatest common divisor between the
+    #image height and image width of the camera
+    resolution_gcd = math.gcd(image_width, image_height)
+
+    #The horizontal aspect is simply the imagewidth divided by the gcd
+    #for examle, a 640x480 should give a GCD of 160, and aspect ratio is 4:3
+    horizontalAspect = (image_width/resolution_gcd)
+
+    #The vertical Aspect ratio is the image height divided by the gcd
+    verticalAspect = (image_height/resolution_gcd)
+
+    #print("aspect: ", horizontalAspect, verticalAspect)
+    # Reasons for using diagonal aspect is to calculate horizontal field of view.
+    diagonalAspect = math.hypot(horizontalAspect, verticalAspect)
+    # Calculations: http://vrguy.blogspot.com/2013/04/converting-diagonal-field-of-view-and.html
+    horizontalView = math.atan(math.tan(diagonalView / 2) * (horizontalAspect / diagonalAspect)) * 2
+    verticalView = math.atan(math.tan(diagonalView / 2) * (verticalAspect / diagonalAspect)) * 2
+
+    H_FOCAL_LENGTH = image_width / (2 * math.tan((horizontalView / 2)))
+    V_FOCAL_LENGTH = image_height / (2 * math.tan((verticalView / 2)))
+
+    return  H_FOCAL_LENGTH, V_FOCAL_LENGTH 
+
+
 
 #CARGO_HEIGHT is actual height (for cargo height in feet)   
 CARGO_BALL_HEIGHT = 0.791667

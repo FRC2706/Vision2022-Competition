@@ -8,5 +8,8 @@
     "Blue": false,
     "OutputStream": "2706_out_target",
     "ExposureTarget": 34,
-    "ExposureBall": 100
+    "ExposureBall": 100,
+    "CameraFOV": 68.5,
+    "OutputStreamWidth": 640,
+    "OutputStreamHeight": 360
 }
