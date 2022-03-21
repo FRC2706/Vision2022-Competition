@@ -32,7 +32,7 @@ real_world_coordinates = np.array([
 MAXIMUM_TARGET_AREA = 4400
 
 # Finds the tape targets from the masked image and displays them on original stream + network tales
-def findTargets(frame, cameraFOV, mask, MergeVisionPipeLineTableName, past_distances):
+def findTargets(frame, cameraFOV, CameraTiltAngle, mask, MergeVisionPipeLineTableName, past_distances):
 
     # Taking a matrix of size 5 as the kernel 
     #kernel = np.ones((3,3), np.uint8) 
@@ -85,7 +85,7 @@ def findTargets(frame, cameraFOV, mask, MergeVisionPipeLineTableName, past_dista
     YawToTarget = -99
     distance = -1
     if len(contours) != 0:
-        image, final_center, YawToTarget, distance = findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName, past_distances, cameraFOV)
+        image, final_center, YawToTarget, distance = findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName, past_distances, cameraFOV, CameraTiltAngle)
     else:
         past_distances.clear()
     # Shows the contours overlayed on the original video
@@ -162,12 +162,12 @@ def findTvecRvec(image, outer_corners, real_world_coordinates, H_FOCAL_LENGTH, V
 #angle 1 is the Yaw to the target
 #distance is the distance to the target
 #angle 2 is the Yaw of the Robot to the target
-def compute_output_values(rvec, tvec):
+def compute_output_values(rvec, tvec, cameraTiltAngle):
     '''Compute the necessary output distance and angles'''
 
     # The tilt angle only affects the distance and angle1 calcs
     # This is a major impact on calculations
-    tilt_angle = math.radians(30)
+    tilt_angle = math.radians(cameraTiltAngle)
 
     x = tvec[0][0]
     z = math.sin(tilt_angle) * tvec[1][0] + math.cos(tilt_angle) * tvec[2][0]
@@ -234,7 +234,7 @@ def minContour(center, contourCorners):
             if var < minVar : # if var the value (min(xDiff) which is an array with 3+ elements) is greater than current minVar, then set minVar to var, 
                 minVar = var # set minVar to var, so minVar becomes the highest value
                 closestCorner = i # closest corner will be the number of the element of contourCorners where it is closest to center
-            print("i[0][0] data: ", j[0][0])
+            #print("i[0][0] data: ", j[0][0])
 
     #print("xDiff: ", xDiff)
     #print("len of contourCorners: ", len(contourCorners[0]))
@@ -249,7 +249,7 @@ def minContour(center, contourCorners):
 # centerX is center x coordinate of image
 # centerY is center y coordinate of image
 
-def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName, past_distances, cameraFOV):
+def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName, past_distances, cameraFOV, CameraTiltAngle):
     global blingColour
     #global warped
     screenHeight, screenWidth, channels = image.shape
@@ -486,26 +486,26 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
 
                      success, rvec, tvec = findTvecRvec(image, outer_corners, real_world_coordinates,H_FOCAL_LENGTH,V_FOCAL_LENGTH) 
                     
-                cv2.putText(image, "TargetYaw: " + str(YawToTarget), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+                cv2.putText(image, "TargetYaw: " + str(YawToTarget), (20, 100), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
                 #cv2.putText(image, "Average Area: " + str(average_area), (20, 240), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
 
                 # If success then print values to screen                               
                 if success:
-                    distance, angle1, angle2 = compute_output_values(rvec, tvec)
+                    distance, angle1, angle2 = compute_output_values(rvec, tvec, CameraTiltAngle)
                     
                     past_distances.append(distance)
                     if len(past_distances) > 5:
                         past_distances.pop(0)
                     
-                    print("past distances", past_distances)
+                    #print("past distances", past_distances)
                     average_distance = getAverageArray(past_distances)
                     #calculate RobotYawToTarget based on Robot offset (subtract 180 degrees)
                     RobotYawToTarget = 180-abs(angle2)
           
-                    cv2.putText(image, "RobotYawToTarget: " + str(round(RobotYawToTarget,2)), (20, 400), cv2.FONT_HERSHEY_COMPLEX, .6,white)
-                    cv2.putText(image, "SolvePnPTargetYawToCenter: " + str(round(angle1,2)), (20, 450), cv2.FONT_HERSHEY_COMPLEX, .6,white)
-                    cv2.putText(image, "Distance: " + str(round((distance/12),2)), (20, 500), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
-                    cv2.putText(image, "Average Distance: " + str(round((average_distance/12),2)), (20, 600), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+                    cv2.putText(image, "RobotYawToTarget: " + str(round(RobotYawToTarget,2)), (20, 140), cv2.FONT_HERSHEY_COMPLEX, .6,white)
+                    cv2.putText(image, "SolvePnPTargetYawToCenter: " + str(round(angle1,2)), (20, 170), cv2.FONT_HERSHEY_COMPLEX, .6,white)
+                    cv2.putText(image, "Distance: " + str(round((distance/12),2)), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+                    cv2.putText(image, "Average Distance: " + str(round((average_distance/12),2)), (20, 230), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
                    
 
                 #start with a non-existing colour
@@ -566,7 +566,7 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                 publishNumber(MergeVisionPipeLineTableName, "finalCenter", -99)
                 publishString("blingTable","command","clear")
                 past_distances.clear()
-                print("past_distances are gone")
+                #print("past_distances are gone")
 
     else:
         #If Nothing is found, publish -99 and -1 to Network table
@@ -577,7 +577,7 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
         publishNumber(MergeVisionPipeLineTableName, "finalCenter", -99)
         publishString("blingTable","command","clear") 
         past_distances.clear()
-        print("past_distances are gone")
+        #print("past_distances are gone")
     #     # pushes vision target angle to network table
     return image, final_center, YawToTarget, distance
 

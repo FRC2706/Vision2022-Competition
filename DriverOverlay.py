@@ -70,7 +70,7 @@ def DriverOverlay(frame, cameraFOV, final_center,YawToTarget, distance):
         cv2.putText(image, "TargetYaw: " + str(YawToTarget), (20, 100), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
 
     if distance != -1:    
-        cv2.putText(image, "Distance: " + str(round((distance/12),2)), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
+        cv2.putText(image, "Distance: " + str(round((distance),2)), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
 
   
     # Shows the contours overlayed on the original video

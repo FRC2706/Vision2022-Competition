@@ -59,6 +59,7 @@ Cargo = False
 Red = True 
 Blue = False
 CameraFOV = 68.5
+CameraTiltAngle = 30
 
 # counts frames for writing images
 frameStop = 0
@@ -162,13 +163,13 @@ while stayInLoop or cap.isOpened():
     if Driver:
       copyframe = frame
       threshold = threshold_video(lower_green, upper_green, frame)
-      processed, final_center, YawToTarget, distance = findTargets(copyframe, CameraFOV, threshold, MergeVisionPipeLineTableName, past_distances)
+      processed, final_center, YawToTarget, distance = findTargets(copyframe, CameraFOV, CameraTiltAngle, threshold, MergeVisionPipeLineTableName, past_distances)
       #Use driver Overlay with same Microsoft camera with 68.5 FOV
-      processed = DriverOverlay(copyframe, CameraFOV, final_center ,YawToTarget, distance)
+      processed = DriverOverlay(copyframe, CameraFOV, final_center ,YawToTarget, (distance/12))
     else:
         if Tape:
             threshold = threshold_video(lower_green, upper_green, frame)
-            processed, final_center, YawToTarget, distance = findTargets(frame, CameraFOV, threshold, MergeVisionPipeLineTableName, past_distances)
+            processed, final_center, YawToTarget, distance = findTargets(frame, CameraFOV, CameraTiltAngle, threshold, MergeVisionPipeLineTableName, past_distances)
        
         if Cargo:
             if Red:

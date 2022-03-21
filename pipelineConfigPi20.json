@@ -10,6 +10,7 @@
     "ExposureTarget": 34,
     "ExposureBall": 100,
     "CameraFOV": 170,
+    "CameraTiltAngle": 30,
     "OutputStreamWidth": 320,
     "OutputStreamHeight": 240
 }

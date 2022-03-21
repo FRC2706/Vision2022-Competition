@@ -213,8 +213,10 @@ OutputStream = data["OutputStream"]
 ExposureTape = data["ExposureTarget"]
 ExposureBall = data["ExposureBall"]
 CameraFOV = data["CameraFOV"]
+CameraTiltAngle = data["CameraTiltAngle"]
 OutputStreamWidth = data["OutputStreamWidth"]
 OutputStreamHeight = data["OutputStreamHeight"]
+
 
 if DriverEnabled:
     switch = 1
@@ -493,7 +495,7 @@ if __name__ == "__main__":
             if (networkTableVisionPipeline.getBoolean("SendMask", False)):
                 processed = threshold
             else:    
-                processed, final_center, YawToTarget, distance = findTargets(frame, CameraFOV, threshold, MergeVisionPipeLineTableName, past_distances)
+                processed, final_center, YawToTarget, distance = findTargets(frame, CameraFOV, CameraTiltAngle, threshold, MergeVisionPipeLineTableName, past_distances)
 
                 #Read RPM From Network Table
                 rpm = networkTableVisionPipeline.getNumber("RPM", 0)
