@@ -139,8 +139,9 @@ class WebcamVideoStream:
                 #self.autoExpose = False
                 #if self.autoExpose != self.prevValue:
                 if self.switchBall != True:
-                    self.webcam.setExposureManual(100)
                     self.webcam.setExposureManual(ExposureBall)
+                    self.webcam.setExposureManual(39)
+                    self.webcam.setExposureAuto()
                     self.switchBall = True
                     self.switchTape = False
                     #self.prevValue = self.autoExpose
@@ -214,6 +215,7 @@ ExposureTape = data["ExposureTarget"]
 ExposureBall = data["ExposureBall"]
 CameraFOV = data["CameraFOV"]
 CameraTiltAngle = data["CameraTiltAngle"]
+OverlayScaleFactor = data["OverlayScaleFactor"]
 OutputStreamWidth = data["OutputStreamWidth"]
 OutputStreamHeight = data["OutputStreamHeight"]
 
@@ -407,6 +409,7 @@ if __name__ == "__main__":
     networkTableVisionPipeline.putBoolean("TopCamera", False)
     networkTableVisionPipeline.putBoolean("Cam", currentCam)
     #networkTable.putBoolean("Aligned", False)
+    networkTableVisionPipeline.putValue("OverlayScaleFactor",OverlayScaleFactor)
 
     matchNumberDefault = random.randint(1, 1000)
     processed = 0
@@ -505,11 +508,12 @@ if __name__ == "__main__":
         if (networkTableVisionPipeline.getBoolean("Driver", True)):
             switch = 1
             
-            final_center = networkTableVisionReadPipeline.getNumber("FinalCenter", -99)
+            TargetPixelFromCenter = networkTableVisionReadPipeline.getNumber("TargetPixelFromCenter", -99)
             yaw = networkTableVisionReadPipeline.getNumber("YawToTarget", -99)
             distance = networkTableVisionReadPipeline.getNumber("DistanceToTarget", -1)
+            NTOverlayScaleFactor = networkTableVisionReadPipeline.getValue("OverlayScaleFactor",OverlayScaleFactor)
             
-            processed = DriverOverlay(frame, CameraFOV, final_center, yaw, distance)
+            processed = DriverOverlay(frame, CameraFOV, NTOverlayScaleFactor, TargetPixelFromCenter, yaw, distance)
            
 
       

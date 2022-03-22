@@ -546,7 +546,7 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
 
                 cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), white, 2)
                 cv2.line(image, (final_center, screenHeight), (final_center, 0), colour, 2)
-                
+                #print("Final_Center:",final_center)
 
                 #publishResults(name,value)
                 publishNumber(MergeVisionPipeLineTableName, "YawToTarget", YawToTarget)
@@ -555,7 +555,7 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                     publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", round(distance/12,2))
                     publishNumber(MergeVisionPipeLineTableName, "AverageDistance", round(average_distance/12,2))
                     publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", round(RobotYawToTarget,2))
-                    publishNumber(MergeVisionPipeLineTableName, "FinalCenter", round(final_center,2))
+                    publishNumber(MergeVisionPipeLineTableName, "TargetPixelFromCenter", round(final_center-centerX,2))
                        
             else:
                 #If Nothing is found, publish -99 and -1 to Network table
@@ -563,7 +563,7 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
                 publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1)  
                 publishNumber(MergeVisionPipeLineTableName, "AverageDistance", -1)  
                 publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99)
-                publishNumber(MergeVisionPipeLineTableName, "finalCenter", -99)
+                publishNumber(MergeVisionPipeLineTableName, "TargetPixelFromCenter", -99)
                 publishString("blingTable","command","clear")
                 past_distances.clear()
                 #print("past_distances are gone")
@@ -574,12 +574,12 @@ def findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableNa
         publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1) 
         publishNumber(MergeVisionPipeLineTableName, "AverageDistance", -1)  
         publishNumber(MergeVisionPipeLineTableName, "RobotYawToTarget", -99) 
-        publishNumber(MergeVisionPipeLineTableName, "finalCenter", -99)
+        publishNumber(MergeVisionPipeLineTableName, "TargetPixelFromCenter", -99)
         publishString("blingTable","command","clear") 
         past_distances.clear()
         #print("past_distances are gone")
     #     # pushes vision target angle to network table
-    return image, final_center, YawToTarget, distance
+    return image, (final_center-centerX), YawToTarget, distance
 
 
 # Checks if the target contours are worthy 

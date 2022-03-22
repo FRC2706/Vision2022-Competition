@@ -29,7 +29,7 @@ def calculateResolutionDifferential(final_center, driverCamWidth, AltCamWidth):
 #           an alternate field of view
 #   The Distance to the target (for display purposes)
 
-def DriverOverlay(frame, cameraFOV, final_center,YawToTarget, distance):
+def DriverOverlay(frame, cameraFOV, OverlayScaleFactor, TargetPixelFromCenter,YawToTarget, distance):
   
     # Take each frame
     # Gets the shape of video
@@ -44,19 +44,27 @@ def DriverOverlay(frame, cameraFOV, final_center,YawToTarget, distance):
 
     #print("harcoded focalLength:",H_FOCAL_LENGTH)
 
-    H_FocalLength, V_FocalLength = calculateFocalLengthsFromInput(cameraFOV, screenWidth, screenHeight)
-    #print("calculated focal:",H_FocalLength)
-    if (YawToTarget != -99):
-      # print("overlay1: ",final_center) 
-       final_center = getTargetCenterFromYaw(YawToTarget, centerX, H_FocalLength)
-       #print("overlay2: ",final_center)
-       #final_center = calculateResolutionDifferential(final_center,screenWidth,screenWidth)
-       #print("shape:",screenWidth,screenHeight)
-       #print("overlay: ",final_center)
+    #How to calculate scaling factor:
+    #It takes into affect the FOV of the two cameras as well as resolution difference
+    # We are given TargetPixelFromCenter which is the difference between the center of the 
+    # screen and the target x position from the original camera
+    # The OverlayScaleFactor accounts for the difference in camera resolution and Field of View
+    # It is calculated as follows:
+    # H_Camera1_FOV      H_Camera2_RES (eg 640) 
+    # -------------  X   ---------------------- 
+    # H_Camera2_FOV      H_Camera1_RES (eg 1280)   
+    # We multiply the TargetPixelFromCenter by the OverlayScaleFactor, which will give us the
+    # TargetPixelFromCenter on the new Camera.   Now all that is need is to add the center X
+    # of the current camera.
 
+    if (YawToTarget != -99):
+        final_center = (TargetPixelFromCenter*OverlayScaleFactor)+centerX
+        #print("TargetPixelFromCenter: ",TargetPixelFromCenter) 
+        #print("CenterX: ",centerX)
+        #print("final_center: ",final_center) 
   
     #Now read Distance and Yaw from Network tables
-    if final_center != -99:
+    #if final_center != -99:
         cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), white, 2)
         if (YawToTarget >= -2 and YawToTarget <= 2):
            colour = green
@@ -66,7 +74,7 @@ def DriverOverlay(frame, cameraFOV, final_center,YawToTarget, distance):
            colour = red
         cv2.line(image, (round(final_center), screenHeight), (round(final_center), 0), colour, 2)
 
-    if YawToTarget != -99:        
+    #if YawToTarget != -99:        
         cv2.putText(image, "TargetYaw: " + str(YawToTarget), (20, 100), cv2.FONT_HERSHEY_COMPLEX, 1.0,white)
 
     if distance != -1:    

@@ -53,13 +53,14 @@ useWebCam = False
 webCamNumber = 1
 
 # ADJUST DESIRED TARGET BASED ON VIDEO OR FILES ABOVE !!!
-Driver = False
+Driver = True
 Tape = False
-Cargo = True
+Cargo = False
 Red = True 
 Blue = False
 CameraFOV = 68.5
 CameraTiltAngle = 30
+OverlayScaleFactor = 1
 
 # counts frames for writing images
 frameStop = 0
@@ -94,11 +95,11 @@ elif useWebCam: #test against live camera
 
 else:  # implies images are to be read
     # Cargo Images
-    images, imagename = load_images_from_folder("./HighCamAngleDown")
+    #mages, imagename = load_images_from_folder("./HighCamAngleDown")
    
 
     # Outer Target Images
-    # images, imagename = load_images_from_folder("./HubImgFRC")
+    images, imagename = load_images_from_folder("./HubImgFRC")
     #images, imagename = load_images_from_folder("./HubImgSketchup")
 
 
@@ -163,14 +164,14 @@ while stayInLoop or cap.isOpened():
     if Driver:
       copyframe = frame
       threshold = threshold_video(lower_green, upper_green, frame)
-      processed, final_center, YawToTarget, distance = findTargets(copyframe, CameraFOV, CameraTiltAngle, threshold, MergeVisionPipeLineTableName, past_distances)
+      processed, TargetPixelFromCenter, YawToTarget, distance = findTargets(copyframe, CameraFOV, CameraTiltAngle, threshold, MergeVisionPipeLineTableName, past_distances)
       #Use driver Overlay with same Microsoft camera with 68.5 FOV
-      processed = DriverOverlay(copyframe, CameraFOV, final_center ,YawToTarget, (distance/12))
+      processed = DriverOverlay(copyframe, CameraFOV, OverlayScaleFactor, TargetPixelFromCenter ,YawToTarget, (distance/12))
     else:
         if Tape:
             threshold = threshold_video(lower_green, upper_green, frame)
-            processed, final_center, YawToTarget, distance = findTargets(frame, CameraFOV, CameraTiltAngle, threshold, MergeVisionPipeLineTableName, past_distances)
-       
+            processed, TargetPixelFromCenter, YawToTarget, distance = findTargets(frame, CameraFOV, CameraTiltAngle, threshold, MergeVisionPipeLineTableName, past_distances)
+    
         if Cargo:
             if Red:
                 boxBlur = blurImg(frame, red_blur)
