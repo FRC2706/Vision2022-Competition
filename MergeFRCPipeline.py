@@ -573,12 +573,12 @@ if __name__ == "__main__":
             start = milliSince1970()
 
         # because we are timing in this file, have to add the fps to image processed 
-        if (displayFPS != 0):
+        #if (displayFPS != 0):
             #print(displayFPS)
-            cv2.putText(processed, 'Grouped FPS: {:.2f}'.format(1000/displayFPS), (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
+            #cv2.putText(processed, 'Grouped FPS: {:.2f}'.format(1000/displayFPS), (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
 
-        if (averageFPS != 0):    
-            cv2.putText(processed, 'Average FPS: {:.2f}'.format(averageFPS), (20, 50), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
+        #if (averageFPS != 0):    
+            #cv2.putText(processed, 'Average FPS: {:.2f}'.format(averageFPS), (20, 50), cv2.FONT_HERSHEY_COMPLEX, 0.6 ,white)
 
         # Resize stream based on the type of stream
         if (OutputStreamWidth != 0):
