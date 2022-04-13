@@ -88,6 +88,12 @@ def findTargets(frame, cameraFOV, CameraTiltAngle, mask, MergeVisionPipeLineTabl
         image, final_center, YawToTarget, distance = findTape(contours, image, centerX, centerY, mask, MergeVisionPipeLineTableName, past_distances, cameraFOV, CameraTiltAngle)
     else:
         past_distances.clear()
+        YawToTarget = -99
+        final_center = -99
+        distance = -1
+        publishNumber(MergeVisionPipeLineTableName, "YawToTarget", -99)
+        publishNumber(MergeVisionPipeLineTableName, "DistanceToTarget", -1)  
+        publishNumber(MergeVisionPipeLineTableName, "AverageDistance", -1)  
     # Shows the contours overlayed on the original video
     return image, final_center, YawToTarget, distance
 
